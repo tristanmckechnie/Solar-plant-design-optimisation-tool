@@ -1,0 +1,15 @@
+{
+	"output" : 
+	{
+		"atmospheric_attenuation_efficiency" : 0.98621232646645274,
+		"blocking_efficiency" : 0.98338394062078238,
+		"cosine_efficiency" : 0.96159615685068245,
+		"optical_energy" : 2567315.4437236171,
+		"receiver_spillage_efficiency" : 1,
+		"shading_efficiency" : 1,
+		"terrain_blocking_efficiency" : 1,
+		"terrain_shading_efficiency" : 1,
+		"total_efficiency" : 0.77591980321279796,
+		"tower_shading_efficiency" : 1
+	}
+}

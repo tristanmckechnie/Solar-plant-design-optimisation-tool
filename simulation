@@ -1,0 +1,288 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Sep 27 11:37:09 2019
+
+@author: tristan
+"""
+# For this program to work the locations and directories must be correct. A python simulation folder has been created for as the root.
+
+import subprocess as sp
+import numpy as np
+import json
+import matplotlib.pyplot as plt
+from sun_pos import *
+import time as time
+
+# needed for 3d interpolation
+from scipy.interpolate import LinearNDInterpolator
+from mpl_toolkits import mplot3d
+
+def square_to_circle(flux_map,num_elements):
+    # receiver area
+    area = 1 # m^2
+    length = (area/np.pi)**0.5
+    
+    # grid
+    n = num_elements # number of points on the grid
+    x = np.linspace(-length+length/(n), length-length/(n),n)
+    y = np.linspace(-length+length/(n), length-length/(n),n)
+    gap = ((x[0]-x[1])**2)**0.5 # gap between points
+    
+    X, Y = np.meshgrid(x,y)
+    
+    # co-ordinates of square centers
+    X_vec = np.reshape(X,(n**2,1))
+    Y_vec = np.reshape(Y,(n**2,1))
+        
+    # find valid squares
+    invalid = np.full((n**2),1)
+    count = 0
+    for i in range(len(X_vec)):
+            if (X_vec[i]**2 + Y_vec[i]**2)**0.5 > length:
+                invalid[i] = 0
+                count += 1
+    area = (2*length/n)**2
+    # turn invalid in 2D array matching the flux_map data
+    invalid = invalid.reshape(num_elements,num_elements)
+    
+    flux_circle = invalid*flux_map 
+    
+    return flux_circle
+    
+
+#%% settings and directory
+simulation = 'field_layout_tests' #'helio100_modified_field'# name of file in \data that contains the jsons for input to the ray tracer
+
+args_settings = '--settings=../data/' + simulation
+args_weather = '--weather=../data/' + simulation + '/capetown.epw'
+#total_power = np.zeros((4,1),float)
+
+#%% Load DNI data for SUNREC site
+
+lat = -33.85
+long = 18.82
+DNI = np.genfromtxt('../data/' + simulation + '/SUNREC_hour.csv', delimiter=',')
+
+Time = np.zeros(8761,int) # creat vector of 1-24 x 365 times
+for k in range(24,8761,24):
+    Time[k-1] = 24
+    for i in range(1,25,1):
+        Time[k-i] = 24-i+1
+
+Time = np.delete(Time, 8760, 0)
+
+plt.figure()
+plt.plot(Time[1920:1944], DNI[1920:1944],'*-')
+plt.grid()
+plt.show()
+
+#%% sun position for design days hour of the year
+c = 24 # number of evaluations per day
+
+azimuth = np.zeros(c*3) # vectors for angles
+altitude = np.zeros(c*3)
+azimuth_1 = np.zeros(6)
+altitude_1 = np.zeros(6)
+DNI_design_days = np.zeros(c*3 +6) # for 78 interp sim
+
+# azimuth = np.zeros(365*24) # vectors for angles
+# altitude = np.zeros(365*24)
+# DNI_design_days = np.zeros(365*24) # for full year sim
+
+count = 0
+count2 = 0 
+days = [79, 172, 356] # days to be evaluated for generating optical efficiency map
+# days = np.arange(1,366,1)
+hours = np.linspace(1,24,c)
+# hours = np.array([1,2,3,4,5,6,7,8,9,10,11,11.999,12,12.001,13,14,15,16,17,18,19,21,22,23,24])
+
+# solar noon locations for design days
+count3 = 0
+for i in days:
+    b = sun_pos(i,2,lat,long) # create sun_pos object called a
+    b.sun_angles(12, 0)
+    
+    azimuth_1[count3] = b.azimuth
+    altitude_1[count3] = b.altitude
+    altitude_1[count3+3] = b.altitude
+    
+    count3 += 1
+azimuth_1[3] = 360
+azimuth_1[4] = 360
+azimuth_1[5] = 360
+    
+for k in days: # loop through the three days
+    a = sun_pos(k,2,lat,long) # create sun_pos object called a
+    for i in hours:
+        a.local_to_solar(i) # call object from module for sun angles calcs
+        a.sun_angles(0,1)
+        
+        azimuth[count] = a.azimuth
+        altitude[count] = a.altitude
+        if altitude[count] < 0:
+            altitude[count] = 0
+            
+        count = count + 1
+    # Retrieve DNI for design days
+    DNI_design_days[24*count2:24*count2 + 24] = DNI[(k-1)*24:((k-1)*24 + 24)] # had to change from k -> k-1
+    count2 += 1
+    
+# comment out if not doing 78 sim for interp map
+azimuth = np.append(azimuth,azimuth_1)
+altitude = np.append(altitude,altitude_1)
+
+# resource for square to cirle correlation
+resource = np.column_stack((DNI_design_days, altitude,azimuth)) 
+# resource for optical efficieny map where DNI changing is irrelevent due to it being a percentage
+# resource = np.column_stack((np.full(c*3,1000), altitude,azimuth)) # a 3 * 216 array, col 1 = DNI, col 2 = alt anlge, col 3 = azimuth angle for efficiency map dni being = 1000 for all cases doesnt matter
+
+# saving resource to input into Tonatiuh
+np.savetxt('sq_to_circ_resource', resource,delimiter=',')
+    
+
+# set up resource data for optical efficiency interpolation
+for i in range(len(resource[:,1])):
+    if resource[i,1] > 0:
+        resource[i,0] = 1000 # used to generate optical efficiency data
+    else:
+        resource[i,0] = 0
+
+# print resource data for entry straight into Tonatiuh automation script
+print('\n DNI: \n')
+print(resource[:,0].tolist())
+
+print('\n Altitude: \n')
+print(resource[:,1].tolist())
+
+print('\n Azimuth: \n')
+print(resource[:,2].tolist())
+
+plt.figure()
+plt.plot(range(78),azimuth,'*-',label='Angles')
+# plt.plot(range(c*3 +3),DNI_design_days/1000,'*-','DNI')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+#%% loop flux analysis 
+num_iterations = 1
+results = np.zeros((len(days)*c +6,num_iterations))
+for i in range(num_iterations): # run same simulation 10 times
+    count = 0
+    time_before = time.time()
+    for k in range(len(resource[:,1])): # loop for each time-step of the selected design days
+        print(count+1)
+        if resource[count,1] > 0: # if altitude angle is positive, ie dont simulate night
+            # read and write JSON settings files
+            with open('../data/' + simulation + '/moments.json') as moment: #open json and change angles and DNI value for the moment simulation
+                file = json.load(moment)
+                
+            file['momentsdata'][0]['azimuth'] = resource[count,2] # represents design days data
+            file['momentsdata'][0]['altitude'] = resource[count,1]
+            file['momentsdata'][0]['irradiation'] = resource[count,0]
+            
+            with open('../data/' + simulation + '/moments.json','w') as raytracer: #save as json file (serialization)
+                json.dump(file,raytracer,indent = 4)
+          
+            #Run ray-tracer simulation
+            p1 = sp.run(['../code/build/sunflower_tools/Sunflower', args_settings, args_weather])
+            
+            # Square to circle flux map
+            flux_map_square = np.genfromtxt('../data/' + simulation + '/fluxmap.csv',delimiter=',')
+            flux_map_square = np.delete(flux_map_square,20,1) 
+            flux_map_circle = square_to_circle(flux_map_square,20) # !!! Remember to choose correct number of elements !!!
+            
+            # calculate total incident power
+            results[count,i] = np.sum(flux_map_circle)
+            print(results[count,i])
+         
+            # import total incident power from sunflower output
+            # data = np.genfromtxt('../data/' + simulation +'/moment_output.csv',delimiter=',')
+            # results[count,i] = data[0]
+            # print(data[0])
+        else:
+            results[count,i] = 0
+        
+        count = count +1
+    time_after = time.time()
+    print('Computation time: ', time_after - time_before)
+
+#%% plot multiple results to check variance
+plt.figure()
+for i in range(len(results[1,:])):
+    plt.plot(range(1,c*3 +1),results[:,i])
+plt.show()
+#%% 3D interpolation function
+    
+design_power = 1000*1614*1.83*1.22 # design_dni * #helios * facet_area - 115 for solarpilot modified helio field
+opt_eff_design_days = results/design_power
+
+# design days sun position and optical efficiency
+x = resource[:,2]
+y = resource[:,1]
+z = opt_eff_design_days[:,0]
+
+cart_coords = list(zip(x,y))
+interp_function = LinearNDInterpolator(cart_coords, z,fill_value = 0)
+
+X = np.linspace(0,360)
+Y = np.linspace(0,90)
+
+XX, YY = np.meshgrid(X, Y)
+xx,yy = np.meshgrid(x,y)
+
+Z = interp_function(XX,YY) # this function is used to interp onto the surface given azimtuh and altitude angles.
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+dp = ax.scatter(x, y, z, zdir='z',s=25,c='r',marker='*')
+ax.plot_surface(XX,YY,Z,cmap='viridis')
+ax.set(xlabel='Azimuth', ylabel = 'Altitude', zlabel = 'Optical Efficiency')
+fig.show()
+
+#%% generate sun position for every day of the year
+yearly_sun_angles = np.zeros((365*24,2))
+count = 0
+for k in np.arange(1,366,1): # loop through the three days
+    a = sun_pos(k,2,lat,long) # create sun_pos object called a
+    for i in np.arange(1,25,1):
+        a.local_to_solar(i) # call object from module for sun angles calcs
+        a.sun_angles(0,1)
+        
+        yearly_sun_angles[count,0] = a.azimuth
+        yearly_sun_angles[count,1] = a.altitude
+        if yearly_sun_angles[count,1] < 0:
+            yearly_sun_angles[count,1] = 0
+            
+        count = count + 1
+
+
+#%% generate optical efficieny vector for every day of the year
+
+year_interp_eff = np.empty((8760),dtype=float)
+count = 0
+for k in np.arange(0,8760,1): # loop over every hour of the year
+
+    interp_opt_eff = interp_function((yearly_sun_angles[k,0],yearly_sun_angles[k,1]))
+    
+    if DNI[k-1] > 0 and interp_opt_eff == 0 and DNI[k+1] > 0: # fix for noon 
+        interp_opt_eff = interp_function((yearly_sun_angles[k-1,0],yearly_sun_angles[k-1,1]))
+
+    year_interp_eff[k] = interp_opt_eff
+    
+
+plt.plot(range(8760),year_interp_eff,'*-',label='optical efficiency')
+# plt.plot(range(8760),yearly_sun_angles[:,1]/90,'*-',label='Elevation angel')
+# plt.plot(range(8760),DNI/max(DNI),'*-',label='DNI')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+#%% average annual optical efficiency
+
+receiver_power = sum(DNI*year_interp_eff*1614*1.83*1.22)
+field_intercepted = sum(DNI*1614*1.83*1.22)
+annual_optical_efficiency = receiver_power/field_intercepted
+

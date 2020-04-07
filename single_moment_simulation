@@ -1,0 +1,97 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Sep 27 11:37:09 2019
+
+@author: tristan
+
+single moment simulation
+"""
+# For this program to work the locations and directories must be correct. A python simulation folder has been created for as the root.
+
+import subprocess as sp
+import numpy as np
+import json
+import matplotlib.pyplot as plt
+from sun_pos import *
+import time as time
+
+# needed for 3d interpolation
+from scipy.interpolate import LinearNDInterpolator
+from mpl_toolkits import mplot3d
+
+def square_to_circle(flux_map,num_elements):
+    # receiver area
+    area = 1 # m^2
+    length = (area/np.pi)**0.5
+    
+    # grid
+    n = num_elements # number of points on the grid
+    x = np.linspace(-length+length/(n), length-length/(n),n)
+    y = np.linspace(-length+length/(n), length-length/(n),n)
+    gap = ((x[0]-x[1])**2)**0.5 # gap between points
+    
+    X, Y = np.meshgrid(x,y)
+    
+    # co-ordinates of square centers
+    X_vec = np.reshape(X,(n**2,1))
+    Y_vec = np.reshape(Y,(n**2,1))
+        
+    # find valid squares
+    invalid = np.full((n**2),1)
+    count = 0
+    for i in range(len(X_vec)):
+            if (X_vec[i]**2 + Y_vec[i]**2)**0.5 > length:
+                invalid[i] = 0
+                count += 1
+    area = (2*length/n)**2
+    # turn invalid in 2D array matching the flux_map data
+    invalid = invalid.reshape(num_elements,num_elements)
+    
+    flux_circle = invalid*flux_map 
+    
+    return flux_circle
+    
+
+#%% settings and directory
+simulation = 'my_field_tests' #'helio100_modified_field'# name of file in \data that contains the jsons for input to the ray tracer
+
+args_settings = '--settings=../data/' + simulation
+args_weather = '--weather=../data/' + simulation + '/capetown.epw'
+#total_power = np.zeros((4,1),float)
+
+
+# loop flux analysis 
+
+# read and write JSON settings files
+with open('../data/' + simulation + '/moments.json') as moment: #open json and change angles and DNI value for the moment simulation
+    file = json.load(moment)
+    
+file['momentsdata'][0]['azimuth'] = 0# represents design days data
+file['momentsdata'][0]['altitude'] = 56.4
+file['momentsdata'][0]['irradiation'] = 1000
+
+with open('../data/' + simulation + '/moments.json','w') as raytracer: #save as json file (serialization)
+    json.dump(file,raytracer,indent = 4)
+  
+#Run ray-tracer simulation
+p1 = sp.run(['../code/build/sunflower_tools/Sunflower', args_settings, args_weather])
+
+# retrieve moment simulation results flux map on rectangular plane
+flux_map = np.genfromtxt('../data/'+ simulation +'/fluxmap.csv',delimiter=',') #
+flux_map = np.delete(flux_map,20,1) # remove arb column of nan's
+
+ 
+# import total incident power from sunflower output
+data = np.genfromtxt('../data/' + simulation +'/moment_output.csv',delimiter=',')
+print(data[0])
+print('Optical efficiency:', data[0]/(1368*1000*1.83*1.22))
+
+# # call square to solar correction function
+# flux_map_circle = square_to_circle(flux_map,20) # !!! Remember to choose correct number of elements !!!
+
+# moment_power = sum(sum(flux_map_circle))
+
+# print('Moment power:', moment_power)
+# print('Optical efficiency:', moment_power/(1368*1000*1.83*1.22))
+

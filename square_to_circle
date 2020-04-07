@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Feb  7 12:54:59 2020
+
+@author: tristan
+
+This is a square to cirlce script for the receiver power evaluation.
+"""
+import numpy as np
+import matplotlib.pyplot as plt
+import math
+
+
+
+def square_to_sim(flux_map,num_elements):
+    # receiver area
+    area = 1 # m^2
+    length = (area/np.pi)**0.5
+    
+    # grid
+    n = num_elements # number of points on the grid
+    x = np.linspace(-length+length/(n), length-length/(n),n)
+    y = np.linspace(-length+length/(n), length-length/(n),n)
+    gap = ((x[0]-x[1])**2)**0.5 # gap between points
+    
+    X, Y = np.meshgrid(x,y)
+    
+    # co-ordinates of square centers
+    X_vec = np.reshape(X,(n**2,1))
+    Y_vec = np.reshape(Y,(n**2,1))
+        
+    # find valid squares
+    invalid = np.full((n**2),1)
+    count = 0
+    for i in range(len(X_vec)):
+            if (X_vec[i]**2 + Y_vec[i]**2)**0.5 > length:
+                invalid[i] = 0
+                count += 1
+    area = (2*length/n)**2
+    # turn invalid in 2D array matching the flux_map data
+    invalid = invalid.reshape(num_elements,num_elements)
+    
+    flux_circle = invalid*flux_map 
+    
+    return flux_circle
+    
+#%%
+# input flux map from sunflower    
+flux_map = np.genfromtxt('../data/test/fluxmap.csv',delimiter=',')
+flux_map = np.delete(flux_map,10,1)
+
+flux_circle = square_to_sim(flux_map,10)
+
+
+
+
+
+
