@@ -9,6 +9,8 @@ optical model class:
 - takes a field position.csv file
 - json's defining tower, receiver and heliostats
 - location of plant
+
+this contains the class for annual optical simulation of a plant. Similar to optical_model script but a .py format so it can be used with import functionality.
 """
 # Required packages
 
