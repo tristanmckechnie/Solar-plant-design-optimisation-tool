@@ -86,7 +86,7 @@ class optical_model:
         with open(self.json_input_directory + '/heliostat.json') as heliostat: #open json as 'file'
             file = json.load(heliostat)
             
-        file['heliostat']['focal_length'] = self.focal_lengths
+        # file['heliostat']['focal_length'] = self.focal_lengths
         file['heliostat']['facets'][0]['facet_dimensions'] = [self.facet_width,self.facet_height]
         file['heliostat']['facets'][0]['facet_position'][0] = file['heliostat']['facets'][0]['facet_dimensions'][0] / -2 # needed for different facet size
         file['heliostat']['facets'][0]['facet_position'][1] = file['heliostat']['facets'][0]['facet_dimensions'][1] / -2 

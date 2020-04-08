@@ -7,6 +7,7 @@ import time
 from HeliopodTools import get_x_y_co
 from HeliopodTools import heliopod_cornfield
 import optical_model_class as opt
+import Dispatch as disp
 
 from scipy.optimize import minimize
 """
@@ -22,7 +23,7 @@ field_y : contains the y co-rods of pod centres
 field_heliostats : contains the x and y co-ords of heliostats
 
 """
-
+#%% zone layout algorithm
 class dense_zone:
     
     def __init__(self,l,number_rows,width,r_min,tower_x,tower_y,field_y):
@@ -205,88 +206,21 @@ class dense_zone:
         plt.show()
         plt.axis('equal')
 
-#%% test class
+#%% field layout simulation tool
+        
+
+
 def field_layout_sim(width):
-    widths = [i*160 for i in width]
-    zone_1 = dense_zone(4.6, 4, widths[0],8,0,0,0) # initialize class instance
-    zone_1.zone_pattern()
+
+    # =============================================================================
+    # Field layout generation 
+    # =============================================================================
     
-    x_start_2 = zone_1.d_col*4 + 1.5*2 
+    field_layout(width)
     
-    zone_2 = dense_zone(4.6, 4, widths[1],8,0,0,x_start_2) 
-    zone_2.zone_pattern()
-    
-    x_start_3 = zone_1.d_col*4 + zone_2.d_col*4 + 1.5*4 
-    
-    zone_3 = dense_zone(4.6, 4, widths[2],8,0,0,x_start_3) 
-    zone_3.zone_pattern()
-    
-    x_start_4 = zone_1.d_col*4 + zone_2.d_col*4 + zone_3.d_col*4 + 1.5*6
-    
-    zone_4 = dense_zone(4.6, 4, widths[3],8,0,0,x_start_4)
-    zone_4.zone_pattern()
-    
-    x_start_5 = zone_1.d_col*4 + zone_2.d_col*4 + zone_3.d_col*4 +  zone_4.d_col*4 + 1.5*8
-    
-    zone_5 = dense_zone(4.6, 4, widths[4],8,0,0,x_start_5) 
-    zone_5.zone_pattern()
-    
-    # zone_6 = dense_zone(4.6, 2, 100,8,0,0,56) 
-    # zone_6.zone_pattern()
-    
-    # zone_7 = dense_zone(4.6, 2, 70,8,0,0,64)
-    # zone_7.zone_pattern()
-    
-    # zone_8 = dense_zone(4.6, 2, 50,8,0,0,72)
-    # zone_8.zone_pattern()
-    
-    # add all zone's pods to one list
-    field = []
-    field.append(zone_1.heliostat_field)
-    field.append(zone_2.heliostat_field)
-    field.append(zone_3.heliostat_field)
-    field.append(zone_4.heliostat_field)
-    field.append(zone_5.heliostat_field)
-    # field.append(zone_6.heliostat_field)
-    # field.append(zone_7.heliostat_field)
-    # field.append(zone_8.heliostat_field)
-    
-    plt.figure()
-    pod_count = 0
-    heliostat_field = np.empty((1,2),dtype=float)
-    for k in range(len(field)):# plot heliostats on a pod
-        for i in range(len(field[k])):
-            pod_array = np.empty((7,2),dtype=float)
-            
-            pod_array[0,:] = field[k][i][0,:]
-            pod_array[1,:] = field[k][i][1,:]
-            pod_array[2,:] = field[k][i][3,:]
-            pod_array[3,:] = field[k][i][4,:]
-            pod_array[4,:] = field[k][i][5,:]
-            pod_array[5,:] = field[k][i][2,:]
-            pod_array[6,:] = field[k][i][0,:]
-        
-            
-            plt.plot(pod_array[:,0],pod_array[:,1],'ro-')
-            
-            pod_array = np.delete(pod_array,6,axis=0)
-            heliostat_field = np.append(heliostat_field,pod_array,axis=0)
-        pod_count = pod_count + i +1
-    
-        
-    plt.grid(True)
-    plt.axis('equal')
-    plt.show()
-    
-    heliostat_field = np.delete(heliostat_field,0,axis=0) # delete initial empty row
-    zeros = np.zeros((len(heliostat_field[:,0]),1))
-    heliostat_field = np.hstack((heliostat_field,zeros,zeros))
-    heliostat_field[:,1] = heliostat_field[:,1] * -1 # reflect across the x axis
-    
-    np.savetxt('../data/my_field_tests/positions.csv',heliostat_field,delimiter=",")
-    
+    # =============================================================================    
     # run optical simulation 
-    
+    # =============================================================================    
     num_helios = len(heliostat_field)
     
     time_before = time.time()
@@ -308,42 +242,140 @@ def field_layout_sim(width):
     receiver_power = dni*efficencies*num_helios*1.83*1.22
     
     annual_eta = sum(receiver_power)/sum(num_helios*1.83*1.22*dni)
-
-    return annual_eta, receiver_power[1907],year_sun_angles
+    
+    # =============================================================================    
+    # dispatch optimization section
+    # =============================================================================  
+    
+    dni = np.genfromtxt('SUNREC_hour.csv')
+    eta = efficencies
+    receiver_data = receiver_power
+    
+    # Single plant configuration dispatch optimization and economics
+    
+    start = 0
+    days = 360
+    # receiver_data = np.genfromtxt('kalagadi_field_output_new_efficiency.csv',delimiter=',') # note this is the new receiver efficiency applied in the excel sheet. 
+    tariff_data = np.genfromtxt('kalagadi_extended_tariff.csv',delimiter=',')#tariff_data = np.load('./data/megaflex_tariff.npy') #
+    time_horizon = 48
+    process_output = 0.85e6
+    TES_hours = 14
+    E_start = 0
+    no_helios = num_helios
+    penality_val = 0
+    
+    # create object instance and time simulation
+    bloob_slsqp = disp.Dispatch(start,days,receiver_data,tariff_data,time_horizon,process_output, TES_hours, E_start, no_helios,penality_val)
+    
+    # run rolling time-horizon optimization object method
+    start_clock = time.process_time()
+    # bloob_mmfd.rolling_optimization('dot','zeros',0) # run mmfd with random starting guesses
+    bloob_slsqp.rolling_optimization('scipy','zeros',0) # run slsqp with mmfd starting guesses
+    end_clock = time.process_time()
+    
+    # run plotting
+    # optimal_cost_temp, heuristic_cost_temp,Cummulative_TES_discharge,Cummulative_Receiver_thermal_energy,Cummulative_dumped_heat = bloob_slsqp.plotting()
+    
+    # costs
+    cum_optical_cost, cum_heuristic_cost, optimal_cost_temp, heuristic_cost_temp = bloob_slsqp.strategy_costs()
+    end_clock = time.process_time()
+    
+    print('########################################################################')
+    print('Rolling time-horizon')
+    print('Computational expense: ', end_clock - start_clock)
+    print('Heuristic cost: ', heuristic_cost_temp)
+    print('Optimal cost: ',optimal_cost_temp)
+    # print('########################################################################')
+    
+    annual_heat_gen = sum(bloob_slsqp.discharge*bloob_slsqp.thermal_normalization)
+    
+    # =============================================================================
+    #     LCOH calculation
+    # =============================================================================
+    
+    n = 25;
+    
+    #% CAPEX values
+    
+    CAPEX_tower = 8288 + 1.73*40**2.75;
+    CAPEX_vert_transport = 140892;
+    CAPEX_horz_transport = 248634;
+    
+    CAPEX_TES = 20443*TES_hours*process_output/1e6; #% where TES is represented in MWh_t's
+    
+    CAPEX_receiver = 138130;
+    
+    CAPEX_heliostat = 112.5*1.83*1.22*no_helios #% where Asf is the aperature area of the solar field
+    
+    CAPEX_HE = 138130*process_output/1e6#% where HE is the kWt of the heat exchanger.
+    
+    Total_CAPEX = CAPEX_tower + CAPEX_vert_transport + CAPEX_horz_transport + CAPEX_TES + CAPEX_receiver + CAPEX_heliostat + CAPEX_HE;
+    
+    #% OPEX
+    
+    OM = 0.039*Total_CAPEX;
+    indirect_costs = 0.22*Total_CAPEX;
+    
+    #% capitcal recovery factor
+    kd = 0.07;
+    k_ins = 0.01;
+    CRF = ((kd*(1+kd)**n)/((1+kd)**n -1)) + k_ins;
+    
+    #% LCOH 
+    
+    LCOH_s = ((Total_CAPEX+ indirect_costs)*CRF + OM )/(annual_heat_gen/1e6);
+    
+    # LCOH electric
+    
+    annual_elec_gen = days*24*process_output/1e6 - annual_heat_gen/1e6
+    
+    LCOH_e = (heuristic_cost_temp/14.5)/annual_elec_gen # optimal_cost_temp !!!! Remember that costs for optimal cost etc is in Rands so must convert to dollar!!!!
+    
+    # LCOH combined
+    
+    LCOH = ((LCOH_e*annual_elec_gen) + (LCOH_s*annual_heat_gen/1e6) )/ (365*24*process_output/1e6)
+    
+    return annual_eta, receiver_power[1907],year_sun_angles,LCOH
 
 def field_layout(width):
     widths = [i*160 for i in width]
-    zone_1 = dense_zone(4.6, 4, widths[0],8,0,0,0) # initialize class instance
+    zone_1 = dense_zone(6, 2, widths[0],10,0,0,0) # initialize class instance
     zone_1.zone_pattern()
     
-    x_start_2 = zone_1.d_col*4 + 1.5*2 
+    x_start_2 = zone_1.d_col*2 + 1.5
     
-    zone_2 = dense_zone(4.6, 4, widths[1],8,0,0,x_start_2) 
+    zone_2 = dense_zone(6, 2, widths[1],8,0,0,x_start_2) 
     zone_2.zone_pattern()
     
-    x_start_3 = zone_1.d_col*4 + zone_2.d_col*4 + 1.5*4 
+    x_start_3 = zone_1.d_col*2 + zone_2.d_col*2 + 1.5*2
     
-    zone_3 = dense_zone(4.6, 4, widths[2],8,0,0,x_start_3) 
+    zone_3 = dense_zone(6, 2, widths[2],8,0,0,x_start_3) 
     zone_3.zone_pattern()
     
-    x_start_4 = zone_1.d_col*4 + zone_2.d_col*4 + zone_3.d_col*4 + 1.5*6
+    x_start_4 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 + 1.5*3
     
-    zone_4 = dense_zone(4.6, 4, widths[3],8,0,0,x_start_4)
+    zone_4 = dense_zone(6, 2, widths[3],8,0,0,x_start_4)
     zone_4.zone_pattern()
     
-    x_start_5 = zone_1.d_col*4 + zone_2.d_col*4 + zone_3.d_col*4 +  zone_4.d_col*4 + 1.5*8
+    x_start_5 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + 1.5*4
     
-    zone_5 = dense_zone(4.6, 4, widths[4],8,0,0,x_start_5) 
+    zone_5 = dense_zone(6, 4, widths[4],8,0,0,x_start_5) 
     zone_5.zone_pattern()
     
-    # zone_6 = dense_zone(4.6, 2, 100,8,0,0,56) 
-    # zone_6.zone_pattern()
+    x_start_6 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*4 + 1.5*6
     
-    # zone_7 = dense_zone(4.6, 2, 70,8,0,0,64)
-    # zone_7.zone_pattern()
+    zone_6 = dense_zone(6, 4, widths[5],8,0,0,x_start_6) 
+    zone_6.zone_pattern()
     
-    # zone_8 = dense_zone(4.6, 2, 50,8,0,0,72)
-    # zone_8.zone_pattern()
+    x_start_7 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*4 + zone_6.d_col*4 + 1.5*8
+    
+    zone_7 = dense_zone(6, 2, widths[6],8,0,0,x_start_7)
+    zone_7.zone_pattern()
+    
+    x_start_8 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*4 + zone_6.d_col*4 + zone_7.d_col*2 + 1.5*9
+    
+    zone_8 = dense_zone(6, 2, widths[7],8,0,0,x_start_8)
+    zone_8.zone_pattern()
     
     # add all zone's pods to one list
     field = []
@@ -352,9 +384,9 @@ def field_layout(width):
     field.append(zone_3.heliostat_field)
     field.append(zone_4.heliostat_field)
     field.append(zone_5.heliostat_field)
-    # field.append(zone_6.heliostat_field)
-    # field.append(zone_7.heliostat_field)
-    # field.append(zone_8.heliostat_field)
+    field.append(zone_6.heliostat_field)
+    field.append(zone_7.heliostat_field)
+    field.append(zone_8.heliostat_field)
     
     plt.figure()
     pod_count = 0
@@ -392,11 +424,9 @@ def field_layout(width):
 
 #%% single moment simulation for contraint 
 import subprocess as sp
-import numpy as np
 import json
-import matplotlib.pyplot as plt
 from sun_pos import *
-import time as time
+
 
 # needed for 3d interpolation
 from scipy.interpolate import LinearNDInterpolator
@@ -475,9 +505,9 @@ def single_moment_simulation():
 #%% field layout optimization
     
 def objective(x):
-    eff, noon_power, yearly_sun_angles = field_layout_sim(x)
+    eff, noon_power, yearly_sun_angles, LCOH = field_layout_sim(x)
     print('Guesses:',x,' Efficiency:', eff)
-    return -eff*100
+    return -LCOH
 
 def constraint1(x):
     field_layout(x)
@@ -499,9 +529,9 @@ con = [con1,con2,con3]
 
 # bound = (80/160,160/160)
 # bnds = np.full((5,2),bound)
-x0 = [0.63573022, 0.65852907, 0.61596948, 0.57946145, 0.27323961] # divided through by 160 ie max bounds
+x0 = [0.7, 0.9, 1.1, 1 ,1, 0.7,0.6, 0.05946282] # divided through by 160 ie max bounds
 time_before = time.time()
-result = minimize(objective,x0,method='COBYLA',constraints=con1,tol=1e-2,options={'maxiter':30,'disp': True,'rhobeg':10/160})
+result = minimize(objective,x0,method='COBYLA',constraints=con1,tol=1e-2,options={'maxiter':150,'disp': True,'rhobeg':10/160})
 time_after = time.time()
 print(result)
 print('Optimization runtime: ', time_after - time_before)
