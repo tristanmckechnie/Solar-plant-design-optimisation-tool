@@ -1,15 +1,15 @@
 {
 	"output" : 
 	{
-		"atmospheric_attenuation_efficiency" : 0.98482831132742432,
-		"blocking_efficiency" : 0.99753997539975392,
-		"cosine_efficiency" : 0.94697450753692314,
-		"optical_energy" : 2717890.3566022823,
+		"atmospheric_attenuation_efficiency" : 0.98543952433106985,
+		"blocking_efficiency" : 0.9847568426197455,
+		"cosine_efficiency" : 0.90706453040071,
+		"optical_energy" : 3388590.1659523034,
 		"receiver_spillage_efficiency" : 1,
 		"shading_efficiency" : 1,
 		"terrain_blocking_efficiency" : 1,
 		"terrain_shading_efficiency" : 1,
-		"total_efficiency" : 0.74866686062929122,
+		"total_efficiency" : 0.74177372117325369,
 		"tower_shading_efficiency" : 1
 	}
 }

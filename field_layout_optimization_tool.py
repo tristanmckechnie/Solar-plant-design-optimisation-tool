@@ -7,9 +7,18 @@ import time
 from HeliopodTools import get_x_y_co
 from HeliopodTools import heliopod_cornfield
 import optical_model_class as opt
-import Dispatch as disp
+import Dispatch_optimization_class_for_import as disp
 
 from scipy.optimize import minimize
+
+import subprocess as sp
+import json
+from sun_pos import *
+
+
+# needed for 3d interpolation
+from scipy.interpolate import LinearNDInterpolator
+from mpl_toolkits import mplot3d
 """
 
 Author: T McKechnie
@@ -216,7 +225,7 @@ def field_layout_sim(width):
     # Field layout generation 
     # =============================================================================
     
-    field_layout(width)
+    heliostat_field = field_layout(width)
     
     # =============================================================================    
     # run optical simulation 
@@ -225,7 +234,7 @@ def field_layout_sim(width):
     
     time_before = time.time()
     # initialize
-    test_simulation = opt.optical_model(-33.8,18.8,'north',2,1.83,1.22,[50],41,45,20,4,num_helios,"../code/build/sunflower_tools/Sunflower","../data/my_field_tests") # initiaze object of type optical_model
+    test_simulation = opt.optical_model(-27.24,22.902,'north',2,1.83,1.22,[50],41,45,20,4,num_helios,"../code/build/sunflower_tools/Sunflower","../data/my_field_tests") # initiaze object of type optical_model
     
     # set jsons
     test_simulation.heliostat_inputs() # set heliostat parameters
@@ -238,7 +247,7 @@ def field_layout_sim(width):
     print('Total simulation time for a single configuration: ',time_after-time_before)
     
     # import dni csv
-    dni = np.genfromtxt('SUNREC_hour.csv',delimiter=',')
+    dni = np.genfromtxt('Kalagadi_Manganese-hour.csv',delimiter=',')
     receiver_power = dni*efficencies*num_helios*1.83*1.22
     
     annual_eta = sum(receiver_power)/sum(num_helios*1.83*1.22*dni)
@@ -247,7 +256,6 @@ def field_layout_sim(width):
     # dispatch optimization section
     # =============================================================================  
     
-    dni = np.genfromtxt('SUNREC_hour.csv')
     eta = efficencies
     receiver_data = receiver_power
     
@@ -297,7 +305,7 @@ def field_layout_sim(width):
     
     #% CAPEX values
     
-    CAPEX_tower = 8288 + 1.73*40**2.75;
+    CAPEX_tower = 8288 + 1.73*(40**2.75);
     CAPEX_vert_transport = 140892;
     CAPEX_horz_transport = 248634;
     
@@ -335,46 +343,52 @@ def field_layout_sim(width):
     
     LCOH = ((LCOH_e*annual_elec_gen) + (LCOH_s*annual_heat_gen/1e6) )/ (365*24*process_output/1e6)
     
+    print('########################################################################')
+    print('Solar LCOH: ', LCOH_s)
+    print('Electric LCOH, ', LCOH_e)
+    print('Combined LCOH, ', LCOH)
+    print('########################################################################')
+    
     return annual_eta, receiver_power[1907],year_sun_angles,LCOH
 
 def field_layout(width):
     widths = [i*160 for i in width]
-    zone_1 = dense_zone(6, 2, widths[0],10,0,0,0) # initialize class instance
+    zone_1 = dense_zone(4.6, 2, widths[0],10,0,0,0) # initialize class instance
     zone_1.zone_pattern()
     
     x_start_2 = zone_1.d_col*2 + 1.5
     
-    zone_2 = dense_zone(6, 2, widths[1],8,0,0,x_start_2) 
+    zone_2 = dense_zone(4.6, 2, widths[1],8,0,0,x_start_2) 
     zone_2.zone_pattern()
     
     x_start_3 = zone_1.d_col*2 + zone_2.d_col*2 + 1.5*2
     
-    zone_3 = dense_zone(6, 2, widths[2],8,0,0,x_start_3) 
+    zone_3 = dense_zone(4.6, 2, widths[2],8,0,0,x_start_3) 
     zone_3.zone_pattern()
     
     x_start_4 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 + 1.5*3
     
-    zone_4 = dense_zone(6, 2, widths[3],8,0,0,x_start_4)
+    zone_4 = dense_zone(4.6, 2, widths[3],8,0,0,x_start_4)
     zone_4.zone_pattern()
     
     x_start_5 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + 1.5*4
     
-    zone_5 = dense_zone(6, 4, widths[4],8,0,0,x_start_5) 
+    zone_5 = dense_zone(4.6, 4, widths[4],8,0,0,x_start_5) 
     zone_5.zone_pattern()
     
     x_start_6 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*4 + 1.5*6
     
-    zone_6 = dense_zone(6, 4, widths[5],8,0,0,x_start_6) 
+    zone_6 = dense_zone(4.6, 4, widths[5],8,0,0,x_start_6) 
     zone_6.zone_pattern()
     
     x_start_7 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*4 + zone_6.d_col*4 + 1.5*8
     
-    zone_7 = dense_zone(6, 2, widths[6],8,0,0,x_start_7)
+    zone_7 = dense_zone(4.6, 2, widths[6],8,0,0,x_start_7)
     zone_7.zone_pattern()
     
     x_start_8 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*4 + zone_6.d_col*4 + zone_7.d_col*2 + 1.5*9
     
-    zone_8 = dense_zone(6, 2, widths[7],8,0,0,x_start_8)
+    zone_8 = dense_zone(4.6, 2, widths[7],8,0,0,x_start_8)
     zone_8.zone_pattern()
     
     # add all zone's pods to one list
@@ -421,16 +435,10 @@ def field_layout(width):
     heliostat_field[:,1] = heliostat_field[:,1] * -1 # reflect across the x axis
     
     np.savetxt('../data/my_field_tests/positions.csv',heliostat_field,delimiter=",")
+    
+    return heliostat_field
 
 #%% single moment simulation for contraint 
-import subprocess as sp
-import json
-from sun_pos import *
-
-
-# needed for 3d interpolation
-from scipy.interpolate import LinearNDInterpolator
-from mpl_toolkits import mplot3d
 
 def square_to_circle(flux_map,num_elements):
     # receiver area
@@ -506,8 +514,10 @@ def single_moment_simulation():
     
 def objective(x):
     eff, noon_power, yearly_sun_angles, LCOH = field_layout_sim(x)
-    print('Guesses:',x,' Efficiency:', eff)
-    return -LCOH
+    print('*****************************************************************')
+    print('Guesses:',x,' Efficiency:', eff, ' LCOH_{comb}: ', LCOH)
+    print('*****************************************************************')
+    return LCOH 
 
 def constraint1(x):
     field_layout(x)
@@ -525,13 +535,13 @@ con1 = {'type': 'ineq','fun': constraint1}
 con2 = {'type': 'ineq','fun': constraint2}
 con3 = {'type': 'ineq','fun': constraint3}
 
-con = [con1,con2,con3]
+con = [con3]
 
 # bound = (80/160,160/160)
 # bnds = np.full((5,2),bound)
-x0 = [0.7, 0.9, 1.1, 1 ,1, 0.7,0.6, 0.05946282] # divided through by 160 ie max bounds
+x0 = [0,0,0,0,0,0,0,0] # divided through by 160 ie max bounds
 time_before = time.time()
-result = minimize(objective,x0,method='COBYLA',constraints=con1,tol=1e-2,options={'maxiter':150,'disp': True,'rhobeg':10/160})
+result = minimize(objective,x0,method='COBYLA',constraints=con3,tol=1e-2,options={'maxiter':150,'disp': True,'rhobeg':80/160})
 time_after = time.time()
 print(result)
 print('Optimization runtime: ', time_after - time_before)
