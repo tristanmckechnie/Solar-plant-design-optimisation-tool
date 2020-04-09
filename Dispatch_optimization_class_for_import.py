@@ -14,7 +14,7 @@ from scipy.optimize import minimize
 from scipy.optimize import Bounds
 from scipy.optimize import LinearConstraint 
 import time
-import dot as dot
+# import dot as dot
 import ctypes as ct
 import pandas as pd
 

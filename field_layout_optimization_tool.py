@@ -282,7 +282,7 @@ def field_layout_sim(width):
     end_clock = time.process_time()
     
     # run plotting
-    # optimal_cost_temp, heuristic_cost_temp,Cummulative_TES_discharge,Cummulative_Receiver_thermal_energy,Cummulative_dumped_heat = bloob_slsqp.plotting()
+    optimal_cost_temp, heuristic_cost_temp,Cummulative_TES_discharge,Cummulative_Receiver_thermal_energy,Cummulative_dumped_heat = bloob_slsqp.plotting()
     
     # costs
     cum_optical_cost, cum_heuristic_cost, optimal_cost_temp, heuristic_cost_temp = bloob_slsqp.strategy_costs()
@@ -293,7 +293,7 @@ def field_layout_sim(width):
     print('Computational expense: ', end_clock - start_clock)
     print('Heuristic cost: ', heuristic_cost_temp)
     print('Optimal cost: ',optimal_cost_temp)
-    # print('########################################################################')
+    print('########################################################################')
     
     annual_heat_gen = sum(bloob_slsqp.discharge*bloob_slsqp.thermal_normalization)
     
@@ -337,16 +337,18 @@ def field_layout_sim(width):
     
     annual_elec_gen = days*24*process_output/1e6 - annual_heat_gen/1e6
     
-    LCOH_e = (heuristic_cost_temp/14.5)/annual_elec_gen # optimal_cost_temp !!!! Remember that costs for optimal cost etc is in Rands so must convert to dollar!!!!
+    LCOH_e = (optimal_cost_temp/14.5)/annual_elec_gen # optimal_cost_temp !!!! Remember that costs for optimal cost etc is in Rands so must convert to dollar!!!!
     
     # LCOH combined
     
-    LCOH = ((LCOH_e*annual_elec_gen) + (LCOH_s*annual_heat_gen/1e6) )/ (365*24*process_output/1e6)
+    LCOH = ((LCOH_e*annual_elec_gen) + (LCOH_s*annual_heat_gen/1e6) )/ (days*24*process_output/1e6)
     
     print('########################################################################')
     print('Solar LCOH: ', LCOH_s)
     print('Electric LCOH, ', LCOH_e)
     print('Combined LCOH, ', LCOH)
+    print('Electric heat generated, ', annual_elec_gen)
+    print('Solar heat generated, ', annual_heat_gen/1e6)
     print('########################################################################')
     
     return annual_eta, receiver_power[1907],year_sun_angles,LCOH
@@ -546,5 +548,134 @@ time_after = time.time()
 print(result)
 print('Optimization runtime: ', time_after - time_before)
 
-#%%
-field_layout([0.63573022, 0.65852907, 0.61596948, 0.57946145, 0.27323961])
+#%% Field layout simulation for single simulaiton
+width = [0.61524521, 0.61292568, 0.85147492, 0.91586647, 0.87565367,0.88102504, 0.40101416, 0.51029189]
+# =============================================================================
+# Field layout generation 
+# =============================================================================
+
+heliostat_field = field_layout(width)
+
+# =============================================================================    
+# run optical simulation 
+# =============================================================================    
+num_helios = len(heliostat_field)
+
+time_before = time.time()
+# initialize
+test_simulation = opt.optical_model(-27.24,22.902,'north',2,1.83,1.22,[50],41,45,20,4,num_helios,"../code/build/sunflower_tools/Sunflower","../data/my_field_tests") # initiaze object of type optical_model
+
+# set jsons
+test_simulation.heliostat_inputs() # set heliostat parameters
+test_simulation.receiver_inputs()
+test_simulation.tower_inputs()
+test_simulation.raytracer_inputs()
+# get optical efficiency results
+efficencies, year_sun_angles = test_simulation.annual_hourly_optical_eff()
+time_after =  time.time()
+print('Total simulation time for a single configuration: ',time_after-time_before)
+
+# import dni csv
+dni = np.genfromtxt('Kalagadi_Manganese-hour.csv',delimiter=',')
+receiver_power = dni*efficencies*num_helios*1.83*1.22
+
+annual_eta = sum(receiver_power)/sum(num_helios*1.83*1.22*dni)
+
+# =============================================================================    
+# dispatch optimization section
+# =============================================================================  
+
+eta = efficencies
+receiver_data = receiver_power
+
+# Single plant configuration dispatch optimization and economics
+
+start = 0
+days = 360
+# receiver_data = np.genfromtxt('kalagadi_field_output_new_efficiency.csv',delimiter=',') # note this is the new receiver efficiency applied in the excel sheet. 
+tariff_data = np.genfromtxt('kalagadi_extended_tariff.csv',delimiter=',')#tariff_data = np.load('./data/megaflex_tariff.npy') #
+time_horizon = 48
+process_output = 0.85e6
+TES_hours = 14
+E_start = 0
+no_helios = num_helios
+penality_val = 0
+
+# create object instance and time simulation
+bloob_slsqp = disp.Dispatch(start,days,receiver_data,tariff_data,time_horizon,process_output, TES_hours, E_start, no_helios,penality_val)
+
+# run rolling time-horizon optimization object method
+start_clock = time.process_time()
+# bloob_mmfd.rolling_optimization('dot','zeros',0) # run mmfd with random starting guesses
+bloob_slsqp.rolling_optimization('scipy','zeros',0) # run slsqp with mmfd starting guesses
+end_clock = time.process_time()
+
+# run plotting
+optimal_cost_temp, heuristic_cost_temp,Cummulative_TES_discharge,Cummulative_Receiver_thermal_energy,Cummulative_dumped_heat = bloob_slsqp.plotting()
+
+# costs
+cum_optical_cost, cum_heuristic_cost, optimal_cost_temp, heuristic_cost_temp = bloob_slsqp.strategy_costs()
+end_clock = time.process_time()
+
+print('########################################################################')
+print('Rolling time-horizon')
+print('Computational expense: ', end_clock - start_clock)
+print('Heuristic cost: ', heuristic_cost_temp)
+print('Optimal cost: ',optimal_cost_temp)
+print('########################################################################')
+
+annual_heat_gen = sum(bloob_slsqp.discharge*bloob_slsqp.thermal_normalization)
+
+# =============================================================================
+#     LCOH calculation
+# =============================================================================
+
+n = 25;
+
+#% CAPEX values
+
+CAPEX_tower = 8288 + 1.73*(40**2.75);
+CAPEX_vert_transport = 140892;
+CAPEX_horz_transport = 248634;
+
+CAPEX_TES = 20443*TES_hours*process_output/1e6; #% where TES is represented in MWh_t's
+
+CAPEX_receiver = 138130;
+
+CAPEX_heliostat = 112.5*1.83*1.22*no_helios #% where Asf is the aperature area of the solar field
+
+CAPEX_HE = 138130*process_output/1e6#% where HE is the kWt of the heat exchanger.
+
+Total_CAPEX = CAPEX_tower + CAPEX_vert_transport + CAPEX_horz_transport + CAPEX_TES + CAPEX_receiver + CAPEX_heliostat + CAPEX_HE;
+
+#% OPEX
+
+OM = 0.039*Total_CAPEX;
+indirect_costs = 0.22*Total_CAPEX;
+
+#% capitcal recovery factor
+kd = 0.07;
+k_ins = 0.01;
+CRF = ((kd*(1+kd)**n)/((1+kd)**n -1)) + k_ins;
+
+#% LCOH 
+
+LCOH_s = ((Total_CAPEX+ indirect_costs)*CRF + OM )/(annual_heat_gen/1e6);
+
+# LCOH electric
+
+annual_elec_gen = days*24*process_output/1e6 - annual_heat_gen/1e6
+
+LCOH_e = (optimal_cost_temp/14.5)/annual_elec_gen # optimal_cost_temp !!!! Remember that costs for optimal cost etc is in Rands so must convert to dollar!!!!
+
+# LCOH combined
+
+LCOH = ((LCOH_e*annual_elec_gen) + (LCOH_s*annual_heat_gen/1e6) )/ (days*24*process_output/1e6)
+
+print('########################################################################')
+print('Solar LCOH: ', LCOH_s)
+print('Electric LCOH, ', LCOH_e)
+print('Combined LCOH, ', LCOH)
+print('Electric heat generated, ', annual_elec_gen)
+print('Solar heat generated, ', annual_heat_gen/1e6)
+print('########################################################################')
