@@ -311,13 +311,13 @@ class optical_model:
         
         Z = interp_function(XX,YY) # this function is used to interp onto the surface given azimtuh and altitude angles.
         
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
+        # fig = plt.figure()
+        # ax = fig.add_subplot(111, projection='3d')
         
-        dp = ax.scatter(x, y, z, zdir='z',s=25,c='r',marker='*')
-        ax.plot_surface(XX,YY,Z,cmap='viridis')
-        ax.set(xlabel='Azimuth', ylabel = 'Altitude', zlabel = 'Optical Efficiency')
-        fig.show()
+        # dp = ax.scatter(x, y, z, zdir='z',s=25,c='r',marker='*')
+        # ax.plot_surface(XX,YY,Z,cmap='viridis')
+        # ax.set(xlabel='Azimuth', ylabel = 'Altitude', zlabel = 'Optical Efficiency')
+        # fig.show()
         
         return interp_function # return the interp function
  

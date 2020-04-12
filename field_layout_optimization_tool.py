@@ -216,8 +216,6 @@ class dense_zone:
         plt.axis('equal')
 
 #%% field layout simulation tool
-        
-
 
 def field_layout_sim(width):
 
@@ -234,7 +232,7 @@ def field_layout_sim(width):
     
     time_before = time.time()
     # initialize
-    test_simulation = opt.optical_model(-27.24,22.902,'north',2,1.83,1.22,[50],41,45,20,4,num_helios,"../code/build/sunflower_tools/Sunflower","../data/my_field_tests") # initiaze object of type optical_model
+    test_simulation = opt.optical_model(-27.24,22.902,'north',2,1.83,1.22,[50],20,45,20,4,num_helios,"../code/build/sunflower_tools/Sunflower","../data/my_field_tests") # initiaze object of type optical_model
     
     # set jsons
     test_simulation.heliostat_inputs() # set heliostat parameters
@@ -282,7 +280,7 @@ def field_layout_sim(width):
     end_clock = time.process_time()
     
     # run plotting
-    optimal_cost_temp, heuristic_cost_temp,Cummulative_TES_discharge,Cummulative_Receiver_thermal_energy,Cummulative_dumped_heat = bloob_slsqp.plotting()
+    # optimal_cost_temp, heuristic_cost_temp,Cummulative_TES_discharge,Cummulative_Receiver_thermal_energy,Cummulative_dumped_heat = bloob_slsqp.plotting()
     
     # costs
     cum_optical_cost, cum_heuristic_cost, optimal_cost_temp, heuristic_cost_temp = bloob_slsqp.strategy_costs()
@@ -351,11 +349,20 @@ def field_layout_sim(width):
     print('Solar heat generated, ', annual_heat_gen/1e6)
     print('########################################################################')
     
-    return annual_eta, receiver_power[1907],year_sun_angles,LCOH
+    return annual_eta, receiver_power[1907],year_sun_angles,LCOH,no_helios
 
 def field_layout(width):
-    widths = [i*160 for i in width]
-    zone_1 = dense_zone(4.6, 2, widths[0],10,0,0,0) # initialize class instance
+    
+    widths = np.zeros((15,1))
+    for i in range(10):
+        widths[i] = width[i]*160
+    widths[10] = width[10]*10
+    widths[11] = width[11]*10  
+    widths[12] = width[12]*10
+    widths[13] = width[13]*10
+    widths[14] = width[14]*10
+    
+    zone_1 = dense_zone(4.6, 2, widths[0],8,0,0,0) # initialize class instance
     zone_1.zone_pattern()
     
     x_start_2 = zone_1.d_col*2 + 1.5
@@ -375,23 +382,33 @@ def field_layout(width):
     
     x_start_5 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + 1.5*4
     
-    zone_5 = dense_zone(4.6, 4, widths[4],8,0,0,x_start_5) 
+    zone_5 = dense_zone(4.6, 2, widths[4],8,0,0,x_start_5) 
     zone_5.zone_pattern()
     
-    x_start_6 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*4 + 1.5*6
+    x_start_6 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + 1.5*5
     
-    zone_6 = dense_zone(4.6, 4, widths[5],8,0,0,x_start_6) 
+    zone_6 = dense_zone(widths[10], 2, widths[5],8,0,0,x_start_6) 
     zone_6.zone_pattern()
     
-    x_start_7 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*4 + zone_6.d_col*4 + 1.5*8
+    x_start_7 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + 1.5*6
     
-    zone_7 = dense_zone(4.6, 2, widths[6],8,0,0,x_start_7)
+    zone_7 = dense_zone(widths[11], 2, widths[6],8,0,0,x_start_7)
     zone_7.zone_pattern()
     
-    x_start_8 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*4 + zone_6.d_col*4 + zone_7.d_col*2 + 1.5*9
+    x_start_8 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + 1.5*7
     
-    zone_8 = dense_zone(4.6, 2, widths[7],8,0,0,x_start_8)
+    zone_8 = dense_zone(widths[12], 2, widths[7],8,0,0,x_start_8)
     zone_8.zone_pattern()
+    
+    x_start_9 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + zone_8.d_col*2 + 1.5*8
+    
+    zone_9 = dense_zone(widths[13], 2, widths[8],8,0,0,x_start_9)
+    zone_9.zone_pattern()
+    
+    x_start_10 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + zone_8.d_col*2 + zone_9.d_col*2 + 1.5*9
+    
+    zone_10 = dense_zone(widths[14], 2, widths[9],8,0,0,x_start_10)
+    zone_10.zone_pattern()
     
     # add all zone's pods to one list
     field = []
@@ -403,6 +420,8 @@ def field_layout(width):
     field.append(zone_6.heliostat_field)
     field.append(zone_7.heliostat_field)
     field.append(zone_8.heliostat_field)
+    field.append(zone_9.heliostat_field)
+    field.append(zone_10.heliostat_field)
     
     plt.figure()
     pod_count = 0
@@ -515,9 +534,9 @@ def single_moment_simulation():
 #%% field layout optimization
     
 def objective(x):
-    eff, noon_power, yearly_sun_angles, LCOH = field_layout_sim(x)
+    eff, noon_power, yearly_sun_angles, LCOH, no_helios = field_layout_sim(x)
     print('*****************************************************************')
-    print('Guesses:',x,' Efficiency:', eff, ' LCOH_{comb}: ', LCOH)
+    print('Guesses:',x,' Efficiency:', eff, ' LCOH_{comb}: ', LCOH, '# Helios: ', no_helios)
     print('*****************************************************************')
     return LCOH 
 
@@ -539,9 +558,14 @@ con3 = {'type': 'ineq','fun': constraint3}
 
 con = [con3]
 
-# bound = (80/160,160/160)
-# bnds = np.full((5,2),bound)
-x0 = [0,0,0,0,0,0,0,0] # divided through by 160 ie max bounds
+# bound = (0,160/160)
+# bnds = np.full((10,2),bound)
+# bnds = np.append(bnds,[[4.6/6,6/6]],axis=0)
+# bnds = np.append(bnds,[[4.6/6,6/6]],axis=0)
+# bnds = np.append(bnds,[[4.6/6,6/6]],axis=0)
+# bnds = np.append(bnds,[[4.6/6,6/6]],axis=0)
+# bnds = np.append(bnds,[[4.6/6,6/6]],axis=0)
+x0 = [0.71341015, 0.60994967, 0.66171132 ,0.67403096, 0.64234857, 0.67149359, 0.72991511, 0.64525754 ,0.56397061, 0.46873113 ,0.76022055 ,0.82678298 ,0.83880648 ,0.85134496 ,0.99735851] # divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
 time_before = time.time()
 result = minimize(objective,x0,method='COBYLA',constraints=con3,tol=1e-2,options={'maxiter':150,'disp': True,'rhobeg':80/160})
 time_after = time.time()
@@ -549,7 +573,7 @@ print(result)
 print('Optimization runtime: ', time_after - time_before)
 
 #%% Field layout simulation for single simulaiton
-width = [0.61524521, 0.61292568, 0.85147492, 0.91586647, 0.87565367,0.88102504, 0.40101416, 0.51029189]
+width = [0.74001329, 0.74040735 ,0.6760284 , 0.66625524 ,0.65284402, 0.47707358 ,0.81066323 ,0.60202479, 0.57302514 ,0.54827877]
 # =============================================================================
 # Field layout generation 
 # =============================================================================
