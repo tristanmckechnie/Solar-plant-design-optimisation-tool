@@ -232,7 +232,7 @@ def field_layout_sim(width):
     
     time_before = time.time()
     # initialize
-    test_simulation = opt.optical_model(-27.24,22.902,'north',2,1.83,1.22,[50],20,45,20,4,num_helios,"../code/build/sunflower_tools/Sunflower","../data/my_field_tests") # initiaze object of type optical_model
+    test_simulation = opt.optical_model(-27.24,22.902,'north',2,1.83,1.22,[50],41,45,20,4,num_helios,"../code/build/sunflower_tools/Sunflower","../data/my_field_tests") # initiaze object of type optical_model
     
     # set jsons
     test_simulation.heliostat_inputs() # set heliostat parameters
@@ -356,13 +356,13 @@ def field_layout(width):
     widths = np.zeros((15,1))
     for i in range(10):
         widths[i] = width[i]*160
-    widths[10] = width[10]*10
-    widths[11] = width[11]*10  
-    widths[12] = width[12]*10
-    widths[13] = width[13]*10
-    widths[14] = width[14]*10
+    # widths[10] = width[10]*10
+    # widths[11] = width[11]*10  
+    # widths[12] = width[12]*10
+    # widths[13] = width[13]*10
+    # widths[14] = width[14]*10
     
-    zone_1 = dense_zone(4.6, 2, widths[0],8,0,0,0) # initialize class instance
+    zone_1 = dense_zone(4.6, 2, widths[0],10,0,0,0) # initialize class instance
     zone_1.zone_pattern()
     
     x_start_2 = zone_1.d_col*2 + 1.5
@@ -387,27 +387,27 @@ def field_layout(width):
     
     x_start_6 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + 1.5*5
     
-    zone_6 = dense_zone(widths[10], 2, widths[5],8,0,0,x_start_6) 
+    zone_6 = dense_zone(4.6, 2, widths[5],8,0,0,x_start_6) 
     zone_6.zone_pattern()
     
     x_start_7 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + 1.5*6
     
-    zone_7 = dense_zone(widths[11], 2, widths[6],8,0,0,x_start_7)
+    zone_7 = dense_zone(4.6, 2, widths[6],8,0,0,x_start_7)
     zone_7.zone_pattern()
     
     x_start_8 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + 1.5*7
     
-    zone_8 = dense_zone(widths[12], 2, widths[7],8,0,0,x_start_8)
+    zone_8 = dense_zone(4.6, 2, widths[7],8,0,0,x_start_8)
     zone_8.zone_pattern()
     
     x_start_9 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + zone_8.d_col*2 + 1.5*8
     
-    zone_9 = dense_zone(widths[13], 2, widths[8],8,0,0,x_start_9)
+    zone_9 = dense_zone(4.6, 2, widths[8],8,0,0,x_start_9)
     zone_9.zone_pattern()
     
     x_start_10 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + zone_8.d_col*2 + zone_9.d_col*2 + 1.5*9
     
-    zone_10 = dense_zone(widths[14], 2, widths[9],8,0,0,x_start_10)
+    zone_10 = dense_zone(4.6, 2, widths[9],8,0,0,x_start_10)
     zone_10.zone_pattern()
     
     # add all zone's pods to one list
@@ -456,7 +456,7 @@ def field_layout(width):
     heliostat_field[:,1] = heliostat_field[:,1] * -1 # reflect across the x axis
     
     np.savetxt('../data/my_field_tests/positions.csv',heliostat_field,delimiter=",")
-    
+    # print('Number of helios: ',len(heliostat_field) )
     return heliostat_field
 
 #%% single moment simulation for contraint 
@@ -496,7 +496,7 @@ def square_to_circle(flux_map,num_elements):
 
 # settings and directory
 def single_moment_simulation():
-    simulation = 'my_field_tests' #'helio100_modified_field'# name of file in \data that contains the jsons for input to the ray tracer
+    simulation = 'my_field_tests' #'cornfield_layout'#'helio100_modified_field'# name of file in \data that contains the jsons for input to the ray tracer
     
     args_settings = '--settings=../data/' + simulation
     args_weather = '--weather=../data/' + simulation + '/capetown.epw'
@@ -509,7 +509,7 @@ def single_moment_simulation():
         file = json.load(moment)
         
     file['momentsdata'][0]['azimuth'] = 0# represents design days data
-    file['momentsdata'][0]['altitude'] = 56.4
+    file['momentsdata'][0]['altitude'] = 63.3
     file['momentsdata'][0]['irradiation'] = 1000
     
     with open('../data/' + simulation + '/moments.json','w') as raytracer: #save as json file (serialization)
@@ -526,7 +526,7 @@ def single_moment_simulation():
     flux_map_circle = square_to_circle(flux_map,20) # !!! Remember to choose correct number of elements !!!
     
     moment_power = sum(sum(flux_map_circle))
-    
+    # moment_power = sum(sum(flux_map))
     print('Moment power at solar noon, equinox:', moment_power)
 
 
@@ -565,20 +565,20 @@ con = [con3]
 # bnds = np.append(bnds,[[4.6/6,6/6]],axis=0)
 # bnds = np.append(bnds,[[4.6/6,6/6]],axis=0)
 # bnds = np.append(bnds,[[4.6/6,6/6]],axis=0)
-x0 = [0.71341015, 0.60994967, 0.66171132 ,0.67403096, 0.64234857, 0.67149359, 0.72991511, 0.64525754 ,0.56397061, 0.46873113 ,0.76022055 ,0.82678298 ,0.83880648 ,0.85134496 ,0.99735851] # divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
+x0 = [0,0,0,0,0,0,0,0,0,0] #,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
 time_before = time.time()
-result = minimize(objective,x0,method='COBYLA',constraints=con3,tol=1e-2,options={'maxiter':150,'disp': True,'rhobeg':80/160})
+result = minimize(objective,x0,method='COBYLA',constraints=con3,tol=1e-2,options={'maxiter':80,'disp': True,'rhobeg':30/160})
 time_after = time.time()
 print(result)
 print('Optimization runtime: ', time_after - time_before)
 
 #%% Field layout simulation for single simulaiton
-width = [0.74001329, 0.74040735 ,0.6760284 , 0.66625524 ,0.65284402, 0.47707358 ,0.81066323 ,0.60202479, 0.57302514 ,0.54827877]
+# width = [0.74001329, 0.74040735 ,0.6760284 , 0.66625524 ,0.65284402, 0.47707358 ,0.81066323 ,0.60202479, 0.57302514 ,0.54827877]
 # =============================================================================
 # Field layout generation 
 # =============================================================================
 
-heliostat_field = field_layout(width)
+heliostat_field = field_layout([88+20,100+30,104+30,108+30,116+30,108+30,96+30,64+30,40+30])
 
 # =============================================================================    
 # run optical simulation 
@@ -703,3 +703,161 @@ print('Combined LCOH, ', LCOH)
 print('Electric heat generated, ', annual_elec_gen)
 print('Solar heat generated, ', annual_heat_gen/1e6)
 print('########################################################################')
+
+#%% Field layout simulation for single simulaiton given solarpilot field
+
+# =============================================================================
+# Field layout generation 
+# =============================================================================
+
+# paste field layout into postitions.csv in correct data sub-directory
+
+heliostat_field = np.genfromtxt('../data/matti_1374/positions.csv',delimiter=',')
+
+plt.figure()
+plt.plot(heliostat_field[:,0],heliostat_field[:,1],'ro')
+plt.grid(True)
+plt.show()
+
+# =============================================================================    
+# run optical simulation 
+# =============================================================================    
+num_helios = len(heliostat_field)
+
+time_before = time.time()
+# initialize
+test_simulation = opt.optical_model(-27.22,22.902,'north',2,1.83,1.22,[50],41,45,20,4,num_helios,"../code/build/sunflower_tools/Sunflower","../data/matti_1374") # initiaze object of type optical_model
+
+# set jsons
+test_simulation.heliostat_inputs() # set heliostat parameters
+test_simulation.receiver_inputs()
+test_simulation.tower_inputs()
+test_simulation.raytracer_inputs()
+# get optical efficiency results
+efficencies, year_sun_angles = test_simulation.annual_hourly_optical_eff()
+time_after =  time.time()
+print('Total simulation time for a single configuration: ',time_after-time_before)
+
+# import dni csv
+dni = np.genfromtxt('Kalagadi_Manganese-hour.csv',delimiter=',')
+receiver_power = dni*efficencies*num_helios*1.83*1.22
+
+annual_eta = sum(receiver_power)/sum(num_helios*1.83*1.22*dni)
+
+# =============================================================================    
+# dispatch optimization section
+# =============================================================================  
+
+eta = efficencies
+receiver_data = receiver_power
+
+# Single plant configuration dispatch optimization and economics
+
+start = 0
+days = 360
+# receiver_data = np.genfromtxt('kalagadi_field_output_new_efficiency.csv',delimiter=',') # note this is the new receiver efficiency applied in the excel sheet. 
+tariff_data = np.genfromtxt('kalagadi_extended_tariff.csv',delimiter=',')#tariff_data = np.load('./data/megaflex_tariff.npy') #
+time_horizon = 48
+process_output = 0.85e6
+TES_hours = 14
+E_start = 0
+no_helios = num_helios
+penality_val = 0
+
+# create object instance and time simulation
+bloob_slsqp = disp.Dispatch(start,days,receiver_data,tariff_data,time_horizon,process_output, TES_hours, E_start, no_helios,penality_val)
+
+# run rolling time-horizon optimization object method
+start_clock = time.process_time()
+# bloob_mmfd.rolling_optimization('dot','zeros',0) # run mmfd with random starting guesses
+bloob_slsqp.rolling_optimization('scipy','zeros',0) # run slsqp with mmfd starting guesses
+# end_clock = time.process_time()
+
+# run plotting
+optimal_cost_temp, heuristic_cost_temp,Cummulative_TES_discharge,Cummulative_Receiver_thermal_energy,Cummulative_dumped_heat = bloob_slsqp.plotting()
+
+# costs
+# cum_optical_cost, cum_heuristic_cost, optimal_cost_temp, heuristic_cost_temp = bloob_slsqp.strategy_costs()
+end_clock = time.process_time()
+
+print('########################################################################')
+print('Rolling time-horizon')
+print('Computational expense: ', end_clock - start_clock)
+print('Heuristic cost: ', heuristic_cost_temp)
+print('Optimal cost: ',optimal_cost_temp)
+print('########################################################################')
+
+annual_heat_gen = sum(bloob_slsqp.discharge*bloob_slsqp.thermal_normalization)
+
+# =============================================================================
+#     LCOH calculation
+# =============================================================================
+
+n = 25;
+
+#% CAPEX values
+
+CAPEX_tower = 8288 + 1.73*(40**2.75);
+CAPEX_vert_transport = 140892;
+CAPEX_horz_transport = 248634;
+
+CAPEX_TES = 20443*TES_hours*process_output/1e6; #% where TES is represented in MWh_t's
+
+CAPEX_receiver = 138130;
+
+CAPEX_heliostat = 112.5*1.83*1.22*no_helios #% where Asf is the aperature area of the solar field
+
+CAPEX_HE = 138130*process_output/1e6#% where HE is the kWt of the heat exchanger.
+
+Total_CAPEX = CAPEX_tower + CAPEX_vert_transport + CAPEX_horz_transport + CAPEX_TES + CAPEX_receiver + CAPEX_heliostat + CAPEX_HE;
+
+#% OPEX
+
+OM = 0.039*Total_CAPEX;
+indirect_costs = 0.22*Total_CAPEX;
+
+#% capitcal recovery factor
+kd = 0.07;
+k_ins = 0.01;
+CRF = ((kd*(1+kd)**n)/((1+kd)**n -1)) + k_ins;
+
+#% LCOH 
+
+LCOH_s = ((Total_CAPEX+ indirect_costs)*CRF + OM )/(annual_heat_gen/1e6);
+
+# LCOH electric
+
+annual_elec_gen = days*24*process_output/1e6 - annual_heat_gen/1e6
+
+LCOH_e = (optimal_cost_temp/14.5)/annual_elec_gen # optimal_cost_temp !!!! Remember that costs for optimal cost etc is in Rands so must convert to dollar!!!!
+
+# LCOH combined
+
+LCOH = ((LCOH_e*annual_elec_gen) + (LCOH_s*annual_heat_gen/1e6) )/ (days*24*process_output/1e6)
+
+print('########################################################################')
+print('Solar LCOH: ', LCOH_s)
+print('Electric LCOH, ', LCOH_e)
+print('Combined LCOH, ', LCOH)
+print('Electric heat generated, ', annual_elec_gen)
+print('Solar heat generated, ', annual_heat_gen/1e6)
+print('########################################################################')
+
+#%% creat resource array
+
+resource_array = np.zeros((8760,4))
+
+for i in range(8760):
+    resource_array[i,0] = year_sun_angles[i,0]
+    resource_array[i,1] = year_sun_angles[i,1]
+    resource_array[i,2] = efficencies[i]
+    resource_array[i,3] = dni[i]
+    
+plt.figure()
+plt.plot(range(8760),dni/1000,label='dni')
+plt.plot(range(8760),resource_array[:,1]/90,label='elavation angle')
+plt.grid(True)
+plt.legend()
+
+plt.show()
+
