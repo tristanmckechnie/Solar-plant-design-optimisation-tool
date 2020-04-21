@@ -54,7 +54,7 @@ def square_to_circle(flux_map,num_elements):
     
 
 #%% settings and directory
-simulation = 'my_field_tests' #'helio100_modified_field'# name of file in \data that contains the jsons for input to the ray tracer
+simulation = 'cornfield_layout' #'helio100_modified_field'# name of file in \data that contains the jsons for input to the ray tracer
 
 args_settings = '--settings=../data/' + simulation
 args_weather = '--weather=../data/' + simulation + '/capetown.epw'

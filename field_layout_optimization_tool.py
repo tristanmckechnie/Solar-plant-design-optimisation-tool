@@ -353,7 +353,7 @@ def field_layout_sim(width):
 
 def field_layout(width):
     
-    widths = np.zeros((15,1))
+    widths = np.zeros((10,1))
     for i in range(10):
         widths[i] = width[i]*160
     # widths[10] = width[10]*10
@@ -362,7 +362,7 @@ def field_layout(width):
     # widths[13] = width[13]*10
     # widths[14] = width[14]*10
     
-    zone_1 = dense_zone(4.6, 2, widths[0],10,0,0,0) # initialize class instance
+    zone_1 = dense_zone(4.6, 2, widths[0],8,0,0,0) # initialize class instance
     zone_1.zone_pattern()
     
     x_start_2 = zone_1.d_col*2 + 1.5
@@ -423,7 +423,7 @@ def field_layout(width):
     field.append(zone_9.heliostat_field)
     field.append(zone_10.heliostat_field)
     
-    plt.figure()
+    plt.figure(figsize=(10,10))
     pod_count = 0
     heliostat_field = np.empty((1,2),dtype=float)
     for k in range(len(field)):# plot heliostats on a pod
@@ -439,7 +439,7 @@ def field_layout(width):
             pod_array[6,:] = field[k][i][0,:]
         
             
-            plt.plot(pod_array[:,0],pod_array[:,1],'ro-')
+            plt.plot(pod_array[:,0],pod_array[:,1]*-1,'ro-',markersize=4)
             
             pod_array = np.delete(pod_array,6,axis=0)
             heliostat_field = np.append(heliostat_field,pod_array,axis=0)
@@ -447,7 +447,7 @@ def field_layout(width):
     
         
     plt.grid(True)
-    plt.axis('equal')
+    # plt.axis('equal')
     plt.show()
     
     heliostat_field = np.delete(heliostat_field,0,axis=0) # delete initial empty row
@@ -541,7 +541,7 @@ def objective(x):
     return LCOH 
 
 def constraint1(x):
-    field_layout(x)
+    field = field_layout(x)
     moment_power = single_moment_simulation()
     return (moment_power/1e6) - (2500000/1e6)
 
@@ -552,7 +552,7 @@ def constraint3(x):
     return 160/160 - x
 
 
-con1 = {'type': 'ineq','fun': constraint1}
+con1 = {'type': 'eq','fun': constraint1}
 con2 = {'type': 'ineq','fun': constraint2}
 con3 = {'type': 'ineq','fun': constraint3}
 
@@ -567,7 +567,7 @@ con = [con3]
 # bnds = np.append(bnds,[[4.6/6,6/6]],axis=0)
 x0 = [0,0,0,0,0,0,0,0,0,0] #,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
 time_before = time.time()
-result = minimize(objective,x0,method='COBYLA',constraints=con3,tol=1e-2,options={'maxiter':80,'disp': True,'rhobeg':30/160})
+result = minimize(objective,x0,method='SLSQP',constraints=con1,tol=1e-2,options={'maxiter':80,'disp': True,'eps':0.5}) # 'rhobeg':30/160
 time_after = time.time()
 print(result)
 print('Optimization runtime: ', time_after - time_before)
@@ -578,7 +578,9 @@ print('Optimization runtime: ', time_after - time_before)
 # Field layout generation 
 # =============================================================================
 
-heliostat_field = field_layout([88+20,100+30,104+30,108+30,116+30,108+30,96+30,64+30,40+30])
+tower_height = 20
+
+heliostat_field = field_layout([0.80707417, 0.81223441, 0.81794436, 0.92953668, 0.75085491, 0.82604213, 0.74466353, 0.82911329, 0.77139106, 0.42582382])
 
 # =============================================================================    
 # run optical simulation 
@@ -587,7 +589,7 @@ num_helios = len(heliostat_field)
 
 time_before = time.time()
 # initialize
-test_simulation = opt.optical_model(-27.24,22.902,'north',2,1.83,1.22,[50],41,45,20,4,num_helios,"../code/build/sunflower_tools/Sunflower","../data/my_field_tests") # initiaze object of type optical_model
+test_simulation = opt.optical_model(-27.24,22.902,'north',2,1.83,1.22,[50],tower_height,45,20,4,num_helios,"../code/build/sunflower_tools/Sunflower","../data/my_field_tests") # initiaze object of type optical_model
 
 # set jsons
 test_simulation.heliostat_inputs() # set heliostat parameters
@@ -635,7 +637,7 @@ bloob_slsqp.rolling_optimization('scipy','zeros',0) # run slsqp with mmfd starti
 end_clock = time.process_time()
 
 # run plotting
-optimal_cost_temp, heuristic_cost_temp,Cummulative_TES_discharge,Cummulative_Receiver_thermal_energy,Cummulative_dumped_heat = bloob_slsqp.plotting()
+# optimal_cost_temp, heuristic_cost_temp,Cummulative_TES_discharge,Cummulative_Receiver_thermal_energy,Cummulative_dumped_heat = bloob_slsqp.plotting()
 
 # costs
 cum_optical_cost, cum_heuristic_cost, optimal_cost_temp, heuristic_cost_temp = bloob_slsqp.strategy_costs()
@@ -658,7 +660,7 @@ n = 25;
 
 #% CAPEX values
 
-CAPEX_tower = 8288 + 1.73*(40**2.75);
+CAPEX_tower = 8288 + 1.73*(tower_height**2.75);
 CAPEX_vert_transport = 140892;
 CAPEX_horz_transport = 248634;
 
@@ -712,7 +714,7 @@ print('########################################################################'
 
 # paste field layout into postitions.csv in correct data sub-directory
 
-heliostat_field = np.genfromtxt('../data/matti_1374/positions.csv',delimiter=',')
+heliostat_field = np.genfromtxt('../data/matti_1674/positions.csv',delimiter=',')
 
 plt.figure()
 plt.plot(heliostat_field[:,0],heliostat_field[:,1],'ro')
@@ -726,7 +728,7 @@ num_helios = len(heliostat_field)
 
 time_before = time.time()
 # initialize
-test_simulation = opt.optical_model(-27.22,22.902,'north',2,1.83,1.22,[50],41,45,20,4,num_helios,"../code/build/sunflower_tools/Sunflower","../data/matti_1374") # initiaze object of type optical_model
+test_simulation = opt.optical_model(-27.22,22.902,'north',2,1.83,1.22,[50],41,45,20,4,num_helios,"../code/build/sunflower_tools/Sunflower","../data/matti_1674") # initiaze object of type optical_model
 
 # set jsons
 test_simulation.heliostat_inputs() # set heliostat parameters
@@ -860,4 +862,5 @@ plt.grid(True)
 plt.legend()
 
 plt.show()
+
 
