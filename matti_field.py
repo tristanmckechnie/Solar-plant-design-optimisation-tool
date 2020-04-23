@@ -242,9 +242,13 @@ def matti_dense(radius,vis):
     for i in range(len(pod_field)):
         heliostat_field = np.append(heliostat_field,pod_field[i],axis=0)
     heliostat_field = np.delete(heliostat_field,0,axis=0)
+    zeros = np.zeros((len(heliostat_field[:,0]),1))
+    heliostat_field = np.hstack((heliostat_field,zeros,zeros))
+    heliostat_field[:,1] = heliostat_field[:,1] * -1 # reflect across the x axis
+    
+    np.savetxt('../data/my_plant_config/positions.csv',heliostat_field,delimiter=",")    
     return heliostat_field,pod_field
 #%% 
-        
-h_field,p_field = matti_dense(50,1)
+
 
 

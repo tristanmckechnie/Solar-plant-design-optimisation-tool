@@ -148,7 +148,7 @@ class optical_model:
         
         # moment_power = sum(sum(flux_map))
         
-        # print('Moment power: ',moment_power,' W')
+        print('Moment power: ',moment_power,' W')
         
         return moment_power
     
