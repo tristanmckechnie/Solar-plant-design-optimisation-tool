@@ -248,6 +248,13 @@ def field_layout_sim(width):
     dni = np.genfromtxt('Kalagadi_Manganese-hour.csv',delimiter=',')
     receiver_power = dni*efficencies*num_helios*1.83*1.22
     
+    # limit receiver power to 2.5 MWth and apply efficiency
+    
+    for i in range(len(receiver_power)):
+        receiver_power[i] = receiver_power[i] * 0.9 
+        if receiver_power[i] > 2500000:
+            receiver_power[i] = 2500000
+    
     annual_eta = sum(receiver_power)/sum(num_helios*1.83*1.22*dni)
     
     # =============================================================================    
@@ -538,7 +545,7 @@ def objective(x):
     print('*****************************************************************')
     print('Guesses:',x,' Efficiency:', eff, ' LCOH_{comb}: ', LCOH, '# Helios: ', no_helios)
     print('*****************************************************************')
-    return LCOH 
+    return LCOH/60 
 
 def constraint1(x):
     field = field_layout(x)
@@ -567,7 +574,7 @@ con = [con3]
 # bnds = np.append(bnds,[[4.6/6,6/6]],axis=0)
 x0 = [0,0,0,0,0,0,0,0,0,0] #,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
 time_before = time.time()
-result = minimize(objective,x0,method='SLSQP',constraints=con1,tol=1e-2,options={'maxiter':80,'disp': True,'eps':0.5}) # 'rhobeg':30/160
+result = minimize(objective,x0,method='SLSQP',constraints=con1,tol=1e-5,options={'maxiter':80,'disp': True,'eps':0.5}) # 'rhobeg':30/160
 time_after = time.time()
 print(result)
 print('Optimization runtime: ', time_after - time_before)

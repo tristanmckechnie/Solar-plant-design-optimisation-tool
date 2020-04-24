@@ -51,6 +51,13 @@ def plant_configuration_sim(x):
     dni = np.genfromtxt('Kalagadi_Manganese-hour.csv',delimiter=',')
     receiver_power = dni*efficencies*num_helios*1.83*1.22
     
+    # limit receiver power to 2.5 MWth and apply efficiency
+    
+    for i in range(len(rceiver_power)):
+        receiver_power[i] = receiver_power[i] * 0.9 
+        if receiver_power[i] > 2500000:
+            receiver_power[i] = 2500000
+    
     annual_eta = sum(receiver_power)/sum(num_helios*1.83*1.22*dni)
     
     # =============================================================================    
@@ -160,11 +167,11 @@ def plant_configuration_sim(x):
 #%% field layout optimization
     
 def objective(x):
-    eff, noon_power, yearly_sun_angles, LCOH, no_helios = plant_configuration_sim(x)
+    eff, noon_power, yearly_sun_angles, LCOH_obj, no_helios = plant_configuration_sim(x)
     print('*****************************************************************')
-    print('Guesses:',x,' Efficiency:', eff, ' LCOH_{comb}: ', LCOH, '# Helios: ', no_helios)
+    print('Guesses:',x,' Efficiency:', eff, ' LCOH_{comb}: ', LCOH_obj, '# Helios: ', no_helios)
     print('*****************************************************************')
-    return LCOH/60 
+    return LCOH_obj/60 
 
 # def constraint1(x):
 #     field = field_layout(x)
@@ -186,9 +193,14 @@ def objective(x):
 
 
 bnds = np.array([[0,1],[0,1],[0,1]])
-x0 = [0.1,0,0] #,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
+x0 = [0.1,0.1,0.1] #,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
 time_before = time.time()
-result = minimize(objective,x0,method='SLSQP',tol=1e-5,options={'maxiter':80,'disp': True}) # 'rhobeg':30/160
+result = minimize(objective,x0,method='SLSQP',tol=1e-5,bounds=bnds,options={'maxiter':80,'disp': True,'eps':0.15}) # 'rhobeg':30/160
 time_after = time.time()
 print(result)
 print('Optimization runtime: ', time_after - time_before)
+
+#%% loop matti dense function
+
+for i in np.arange(20,100,10):
+    matti_dense(i,1)
