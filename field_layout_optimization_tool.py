@@ -255,7 +255,7 @@ def field_layout_sim(width):
         if receiver_power[i] > 2500000:
             receiver_power[i] = 2500000
     
-    annual_eta = sum(receiver_power)/sum(num_helios*1.83*1.22*dni)
+    annual_eta = sum(dni*efficencies*num_helios*1.83*1.22)/sum(num_helios*1.83*1.22*dni)
     
     # =============================================================================    
     # dispatch optimization section
@@ -360,14 +360,14 @@ def field_layout_sim(width):
 
 def field_layout(width):
     
-    widths = np.zeros((10,1))
+    widths = np.zeros((15,1))
     for i in range(10):
         widths[i] = width[i]*160
-    # widths[10] = width[10]*10
-    # widths[11] = width[11]*10  
-    # widths[12] = width[12]*10
-    # widths[13] = width[13]*10
-    # widths[14] = width[14]*10
+    widths[10] = 4.6#width[10]*10
+    widths[11] = 4.6#width[11]*10  
+    widths[12] = 4.6#width[12]*10
+    widths[13] = 4.6#width[13]*10
+    widths[14] = 4.6#width[14]*10
     
     zone_1 = dense_zone(4.6, 2, widths[0],8,0,0,0) # initialize class instance
     zone_1.zone_pattern()
@@ -394,27 +394,27 @@ def field_layout(width):
     
     x_start_6 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + 1.5*5
     
-    zone_6 = dense_zone(4.6, 2, widths[5],8,0,0,x_start_6) 
+    zone_6 = dense_zone(widths[10], 2, widths[5],8,0,0,x_start_6) 
     zone_6.zone_pattern()
     
-    x_start_7 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + 1.5*6
+    x_start_7 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + 1.5*5 + widths[10]/3
     
-    zone_7 = dense_zone(4.6, 2, widths[6],8,0,0,x_start_7)
+    zone_7 = dense_zone(widths[11], 2, widths[6],8,0,0,x_start_7)
     zone_7.zone_pattern()
     
-    x_start_8 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + 1.5*7
+    x_start_8 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + 1.5*5 + widths[10]/3 + widths[11]/3
     
-    zone_8 = dense_zone(4.6, 2, widths[7],8,0,0,x_start_8)
+    zone_8 = dense_zone(widths[12], 2, widths[7],8,0,0,x_start_8)
     zone_8.zone_pattern()
     
-    x_start_9 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + zone_8.d_col*2 + 1.5*8
+    x_start_9 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + zone_8.d_col*2 + 1.5*5 + widths[10]/3 + widths[11]/3 + widths[12]/3
     
-    zone_9 = dense_zone(4.6, 2, widths[8],8,0,0,x_start_9)
+    zone_9 = dense_zone(widths[13], 2, widths[8],8,0,0,x_start_9)
     zone_9.zone_pattern()
     
-    x_start_10 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + zone_8.d_col*2 + zone_9.d_col*2 + 1.5*9
+    x_start_10 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + zone_8.d_col*2 + zone_9.d_col*2 + 1.5*5 + widths[10]/3 + widths[11]/3 + widths[12]/3+ widths[13]/3  
     
-    zone_10 = dense_zone(4.6, 2, widths[9],8,0,0,x_start_10)
+    zone_10 = dense_zone(widths[14], 2, widths[9],8,0,0,x_start_10)
     zone_10.zone_pattern()
     
     # add all zone's pods to one list
@@ -539,12 +539,17 @@ def single_moment_simulation():
 
     return moment_power
 #%% field layout optimization
-    
+
+obj_func = []
+
 def objective(x):
     eff, noon_power, yearly_sun_angles, LCOH, no_helios = field_layout_sim(x)
     print('*****************************************************************')
     print('Guesses:',x,' Efficiency:', eff, ' LCOH_{comb}: ', LCOH, '# Helios: ', no_helios)
     print('*****************************************************************')
+    
+    obj_func.append(LCOH)
+    
     return LCOH/60 
 
 def constraint1(x):
@@ -565,16 +570,16 @@ con3 = {'type': 'ineq','fun': constraint3}
 
 con = [con3]
 
-# bound = (0,160/160)
-# bnds = np.full((10,2),bound)
-# bnds = np.append(bnds,[[4.6/6,6/6]],axis=0)
-# bnds = np.append(bnds,[[4.6/6,6/6]],axis=0)
-# bnds = np.append(bnds,[[4.6/6,6/6]],axis=0)
-# bnds = np.append(bnds,[[4.6/6,6/6]],axis=0)
-# bnds = np.append(bnds,[[4.6/6,6/6]],axis=0)
+bound = (0,160/160)
+bnds = np.full((10,2),bound)
+bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
 x0 = [0,0,0,0,0,0,0,0,0,0] #,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
 time_before = time.time()
-result = minimize(objective,x0,method='SLSQP',constraints=con1,tol=1e-5,options={'maxiter':80,'disp': True,'eps':0.5}) # 'rhobeg':30/160
+result = minimize(objective,x0,method='COBYLA',constraints=con3,tol=1e-5,options={'maxiter':150,'disp': True,'rhobeg':30/160}) # 'eps':0.5
 time_after = time.time()
 print(result)
 print('Optimization runtime: ', time_after - time_before)
@@ -585,9 +590,11 @@ print('Optimization runtime: ', time_after - time_before)
 # Field layout generation 
 # =============================================================================
 
-tower_height = 20
+tower_height = 41
 
-heliostat_field = field_layout([0.80707417, 0.81223441, 0.81794436, 0.92953668, 0.75085491, 0.82604213, 0.74466353, 0.82911329, 0.77139106, 0.42582382])
+heliostat_field = field_layout([0.71341015, 0.60994967 ,0.66171132 ,0.67403096, 0.64234857, 0.67149359,
+ 0.72991511 ,0.64525754, 0.56397061 ,0.46873113, 0.76022055, 0.82678298,
+ 0.83880648, 0.85134496, 0.99735851])
 
 # =============================================================================    
 # run optical simulation 
@@ -612,7 +619,14 @@ print('Total simulation time for a single configuration: ',time_after-time_befor
 dni = np.genfromtxt('Kalagadi_Manganese-hour.csv',delimiter=',')
 receiver_power = dni*efficencies*num_helios*1.83*1.22
 
-annual_eta = sum(receiver_power)/sum(num_helios*1.83*1.22*dni)
+annual_eta = sum(dni*efficencies*num_helios*1.83*1.22)/sum(num_helios*1.83*1.22*dni)
+
+# limit receiver power to 2.5 MWth and apply efficiency
+    
+for i in range(len(receiver_power)):
+    receiver_power[i] = receiver_power[i] * 0.9 
+    if receiver_power[i] > 2500000:
+        receiver_power[i] = 2500000
 
 # =============================================================================    
 # dispatch optimization section
@@ -751,7 +765,14 @@ print('Total simulation time for a single configuration: ',time_after-time_befor
 dni = np.genfromtxt('Kalagadi_Manganese-hour.csv',delimiter=',')
 receiver_power = dni*efficencies*num_helios*1.83*1.22
 
-annual_eta = sum(receiver_power)/sum(num_helios*1.83*1.22*dni)
+annual_eta = sum(dni*efficencies*num_helios*1.83*1.22)/sum(num_helios*1.83*1.22*dni)
+
+# limit receiver power to 2.5 MWth and apply efficiency
+    
+for i in range(len(receiver_power)):
+    receiver_power[i] = receiver_power[i] * 0.9 
+    if receiver_power[i] > 2500000:
+        receiver_power[i] = 2500000
 
 # =============================================================================    
 # dispatch optimization section

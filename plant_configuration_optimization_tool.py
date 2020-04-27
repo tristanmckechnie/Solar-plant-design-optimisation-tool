@@ -26,7 +26,7 @@ def plant_configuration_sim(x):
     # Field layout generation 
     # =============================================================================
     
-    heliostat_field, pod_field = matti_dense(Radius*80,0)
+    heliostat_field, pod_field = matti_dense(Radius*80,1)
     time.sleep(5)
     # =============================================================================    
     # run optical simulation 
@@ -53,12 +53,12 @@ def plant_configuration_sim(x):
     
     # limit receiver power to 2.5 MWth and apply efficiency
     
-    for i in range(len(rceiver_power)):
+    for i in range(len(receiver_power)):
         receiver_power[i] = receiver_power[i] * 0.9 
         if receiver_power[i] > 2500000:
             receiver_power[i] = 2500000
     
-    annual_eta = sum(receiver_power)/sum(num_helios*1.83*1.22*dni)
+    annual_eta = sum(dni*efficencies*num_helios*1.83*1.22)/sum(num_helios*1.83*1.22*dni)
     
     # =============================================================================    
     # dispatch optimization section
@@ -165,12 +165,15 @@ def plant_configuration_sim(x):
 
 
 #%% field layout optimization
-    
+
+obj_func = []
+
 def objective(x):
     eff, noon_power, yearly_sun_angles, LCOH_obj, no_helios = plant_configuration_sim(x)
     print('*****************************************************************')
     print('Guesses:',x,' Efficiency:', eff, ' LCOH_{comb}: ', LCOH_obj, '# Helios: ', no_helios)
     print('*****************************************************************')
+    obj_func.append(LCOH_obj)
     return LCOH_obj/60 
 
 # def constraint1(x):
@@ -193,9 +196,9 @@ def objective(x):
 
 
 bnds = np.array([[0,1],[0,1],[0,1]])
-x0 = [0.1,0.1,0.1] #,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
+x0 = [0.6343327 , 14/20, 0.46255786] #,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
 time_before = time.time()
-result = minimize(objective,x0,method='SLSQP',tol=1e-5,bounds=bnds,options={'maxiter':80,'disp': True,'eps':0.15}) # 'rhobeg':30/160
+result = minimize(objective,x0,method='SLSQP',tol=1e-5,bounds=bnds,options={'maxiter':80,'disp': True,'eps':0.1}) # 'rhobeg':30/160
 time_after = time.time()
 print(result)
 print('Optimization runtime: ', time_after - time_before)
