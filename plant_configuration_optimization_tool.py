@@ -196,9 +196,9 @@ def objective(x):
 
 
 bnds = np.array([[0,1],[0,1],[0,1]])
-x0 = [0.6343327 , 14/20, 0.46255786] #,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
+x0 = [0.6805, 0.7, 0.425] #,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
 time_before = time.time()
-result = minimize(objective,x0,method='SLSQP',tol=1e-5,bounds=bnds,options={'maxiter':80,'disp': True,'eps':0.1}) # 'rhobeg':30/160
+result = minimize(objective,x0,method='SLSQP',tol=1e-5,bounds=bnds,options={'maxiter':80,'disp': True,}) # 'rhobeg':30/160
 time_after = time.time()
 print(result)
 print('Optimization runtime: ', time_after - time_before)
