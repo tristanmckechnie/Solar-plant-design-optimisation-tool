@@ -601,15 +601,17 @@ con3 = {'type': 'ineq','fun': constraint3}
 con = [con3]
 
 bound = (0,160/160)
-bnds = np.full((10,2),bound)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-x0 = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] #,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
+bnds = np.full((15,2),bound)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+x0 = [ 0.66177231,  0.7117486 ,  0.90000414,  0.85565188,  0.85886699,
+        0.83229603,  0.82838414,  0.76814612,  0.47815746,  0.44811863,
+        0.56748397,  0.29013976, 0.21504752, 0.04065081,  0.10730469] #,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
 time_before = time.time()
-result = minimize(objective,x0,method='COBYLA',constraints=con3,tol=1e-5,options={'maxiter':150,'disp': True,'rhobeg':50/160}) # 'eps':0.5'rhobeg':30/160
+result = minimize(objective,x0,method='SLSQP',bounds=bnds,tol=1e-5,options={'maxiter':150,'disp': True,'eps':0.1}) # 'eps':0.5'rhobeg':30/160
 time_after = time.time()
 print(result)
 print('Optimization runtime: ', time_after - time_before)
@@ -778,7 +780,7 @@ num_helios = len(heliostat_field)
 
 time_before = time.time()
 # initialize
-test_simulation = opt.optical_model(-27.22,22.902,'north',2,1.83,1.22,[50],40,45,20,4,num_helios,"../code/build/sunflower_tools/Sunflower","../data/my_field_tests") # initiaze object of type optical_model
+test_simulation = opt.optical_model(-27.22,22.902,'north',2,1.83,1.22,[50],20,45,20,4,num_helios,"../code/build/sunflower_tools/Sunflower","../data/my_field_tests") # initiaze object of type optical_model
 
 # set jsons
 test_simulation.heliostat_inputs() # set heliostat parameters
@@ -856,7 +858,7 @@ n = 25;
 
 #% CAPEX values
 
-CAPEX_tower = 8288 + 1.73*(40**2.75);
+CAPEX_tower = 8288 + 1.73*(20**2.75);
 CAPEX_vert_transport = 140892;
 CAPEX_horz_transport = 248634;
 

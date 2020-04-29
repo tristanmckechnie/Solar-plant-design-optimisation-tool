@@ -35,7 +35,7 @@ def plant_configuration_sim(x):
     
     time_before = time.time()
     # initialize
-    test_simulation = opt.optical_model(-27.24,22.902,'north',2,1.83,1.22,[50],41,45,20,4,num_helios,"../code/build/sunflower_tools/Sunflower","../data/my_plant_config") # initiaze object of type optical_model
+    test_simulation = opt.optical_model(-27.24,22.902,'north',2,1.83,1.22,[50],21,45,20,4,num_helios,"../code/build/sunflower_tools/Sunflower","../data/my_plant_config") # initiaze object of type optical_model
     
     # set jsons
     test_simulation.heliostat_inputs() # set heliostat parameters
@@ -196,7 +196,7 @@ def objective(x):
 
 
 bnds = np.array([[0,1],[0,1],[0,1]])
-x0 = [0.6805, 0.7, 0.425] #,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
+x0 = [52/80,14/20,0.85/2] #,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
 time_before = time.time()
 result = minimize(objective,x0,method='SLSQP',tol=1e-5,bounds=bnds,options={'maxiter':80,'disp': True,}) # 'rhobeg':30/160
 time_after = time.time()
