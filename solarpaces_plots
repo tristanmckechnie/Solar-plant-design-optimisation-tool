@@ -1,0 +1,576 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Apr 30 11:40:51 2020
+
+@author: tristan
+
+plot fields for solarpaces paper
+"""
+import numpy as np
+from HeliopodTools import get_x_y_co
+from HeliopodTools import heliopod_cornfield
+from HeliopodTools import heliopod
+import math
+import matplotlib.pyplot as plt
+#%% radial layout
+
+def pods_on_radius(radius,side_lengths, allowed_angle): # angle must be in degrees
+    r = radius # radius on which to place pod
+    l_pod = side_lengths # pods side legnth
+    d_pod = (l_pod/np.sqrt(3))*2 # diameter of circle passing through pods vertices
+    
+    theta_pod = 2*np.arctan((d_pod/2)/r) # angle from tower to tangent of pod circles, ie how much azimuthal spacing a pods circles needs.
+    
+    # find centres on a radius
+
+    allowed_azimuth = allowed_angle*np.pi/180 # degrees
+    pod_centres = [[0,r]] # list of list of pod centres
+    pods = [] # list of list of heliostats on each pod
+    count = 0
+    
+    # heliostats for first (0,radius) pod
+    heliopod_coords = heliopod(0, r, l_pod, 0, 0, 0)
+    pods.append(heliopod_coords)
+    
+    # loop to find pods in allowed angle
+    while (len(pod_centres))*theta_pod <= allowed_azimuth: # do while pod centres are postive in y 
+ 
+        if count % 2 == 1:
+            centre_x = r*np.cos(np.pi/2 - theta_pod*(count+1)) # temp x co-ord for pod centres
+            centre_y = r*np.sin(np.pi/2 - theta_pod*(count+1)) # temp y co-ords for pod centres
+        else:
+            centre_x = (r-0.25*d_pod)*np.cos(np.pi/2 - theta_pod*(count+1)) # temp x co-ord for pod centres
+            centre_y = (r-0.25*d_pod)*np.sin(np.pi/2 - theta_pod*(count+1)) # temp y co-ords for pod centres            
+        
+        pod_centres.append([centre_x,centre_y]) # append pod centre co-ords to list
+        
+        if count % 2 == 0:
+            orientation = 1
+        else:
+            orientation = 0
+        
+        heliopod_coords = heliopod(centre_x, centre_y, l_pod, 0, 0, orientation)
+        pods.append(heliopod_coords)
+        
+        count += 1
+        
+    # mirror around y axis
+    num_pods = len(pod_centres)      
+    for i in range(num_pods):  
+        if pod_centres[i][0] != 0:
+            new_x = pod_centres[i][0]*-1
+            new_y = pod_centres[i][1]
+            pod_centres.append([new_x, new_y]) # append pod centre co-ords to list        
+            
+            # if count % 2 == 0:
+            #     orientation = 1
+            # else:
+            #     orientation = 0
+            new_heliopod_x = pods[i][:,0] * -1
+            new_heliopod_y = pods[i][:,1] 
+            
+            new_heliopod = np.vstack((new_heliopod_x,new_heliopod_y))
+            new_heliopod = np.transpose(new_heliopod)
+    
+            pods.append(new_heliopod)
+        
+    # plt.figure(figsize=(10,10))
+    # for i in range(len(pod_centres)):
+    #     plt.plot(pod_centres[i][0],pod_centres[i][1],'go',ms=5)
+    #     circle1 = get_x_y_co([pod_centres[i][0],pod_centres[i][1],d_pod/2])    
+    #     # plt.plot(circle1[:,0],circle1[:,1],'b.')
+        
+    #     pod_array = np.zeros((7,2)) # empty array to plot pods nicely
+    
+    #     pod_array[0,:] = pods[i][0,:]
+    #     pod_array[1,:] = pods[i][1,:]
+    #     pod_array[2,:] = pods[i][3,:]
+    #     pod_array[3,:] = pods[i][4,:]
+    #     pod_array[4,:] = pods[i][5,:]
+    #     pod_array[5,:] = pods[i][2,:]
+    #     pod_array[6,:] = pods[i][0,:]
+            
+    #     plt.plot(pod_array[:,0],pod_array[:,1],'ks-',ms=4)
+        
+    # circle2 = get_x_y_co([0,0,r])    
+    # # plt.plot(circle2[:,0],circle2[:,1],'r.')
+    # plt.grid(True)
+    # plt.ylim([-50,50])
+    # plt.xlim([-50,50])
+    # plt.axis('equal')
+    # plt.show()
+    
+    return pods
+
+# test function
+
+def radial_layout(x):
+    
+    # assign variables
+
+    angle1 = x[0]*90
+    angle2 = x[1]*90
+    angle3 = x[2]*90
+    angle4 = x[3]*90
+    angle5 = x[4]*90
+    angle6 = x[5]*90
+    angle7 = x[6]*90
+    angle8 = x[7]*90
+    angle9 = x[8]*90
+    angle10 = x[9]*90
+    angle11 = x[10]*90
+    angle12 = x[11]*90
+    angle13 = x[12]*90
+    angle14 = x[13]*90
+    angle15 = x[14]*90
+    
+    side1 = x[15]*10
+    side2 = x[16]*10
+    side3 = x[17]*10
+    side4 = x[18]*10
+    side5 = x[19]*10
+    side6 = x[20]*10
+    side7 = x[21]*10
+    side8 = x[22]*10
+    side9 = x[23]*10
+    side10 = x[24]*10
+    side11 = x[25]*10
+    side12 = x[26]*10 
+    side13 = x[27]*10
+    side14 = x[28]*10
+    side15 = x[29]*10
+    
+    # generate zones
+    
+    temp = pods_on_radius(12,side1,angle1)
+    radius1 = max(temp[0][:,1]) + (side1/np.sqrt(3)) + (side2/np.sqrt(3))
+    
+    temp1 = pods_on_radius(radius1,side2,angle2)
+    radius2 = max(temp1[0][:,1])  + (side2/np.sqrt(3)) + (side3/np.sqrt(3))
+    
+    temp2 = pods_on_radius(radius2,side3,angle3)
+    radius3 = max(temp2[0][:,1]) + (side3/np.sqrt(3)) + (side4/np.sqrt(3))
+    
+    temp3 = pods_on_radius(radius3,side4,angle4)
+    radius4 = max(temp3[0][:,1]) + (side4/np.sqrt(3)) + (side5/np.sqrt(3))
+    
+    temp4 = pods_on_radius(radius4,side5,angle5)
+    radius5 = max(temp4[0][:,1]) + (side5/np.sqrt(3)) + (side6/np.sqrt(3))
+    
+    temp5 = pods_on_radius(radius5,side6,angle6)
+    radius6 = max(temp5[0][:,1])  + (side6/np.sqrt(3)) + (side7/np.sqrt(3))
+    
+    temp6 = pods_on_radius(radius6,side7,angle7)
+    radius7 = max(temp6[0][:,1]) + (side7/np.sqrt(3)) + (side8/np.sqrt(3))
+    
+    temp7 = pods_on_radius(radius7,side8,angle8)
+    radius8 = max(temp7[0][:,1]) + (side8/np.sqrt(3)) + (side9/np.sqrt(3))
+    
+    temp8 = pods_on_radius(radius8,side9,angle9)
+    radius9 = max(temp8[0][:,1])  + (side9/np.sqrt(3)) + (side10/np.sqrt(3))
+    
+    temp9 = pods_on_radius(radius9,side10,angle10)
+    radius10 = max(temp9[0][:,1]) + (side10/np.sqrt(3)) + (side11/np.sqrt(3))
+    
+    temp10 = pods_on_radius(radius10,side11,angle11)
+    radius11 = max(temp10[0][:,1]) + (side11/np.sqrt(3)) + (side12/np.sqrt(3))
+    
+    temp11 = pods_on_radius(radius11,side12,angle12)
+    radius12 = max(temp11[0][:,1])  + (side12/np.sqrt(3)) + (side13/np.sqrt(3))
+    
+    temp12 = pods_on_radius(radius12,side13,angle13)
+    radius13 = max(temp12[0][:,1]) + (side13/np.sqrt(3)) + (side14/np.sqrt(3))
+    
+    temp13 = pods_on_radius(radius13,side14,angle14)
+    radius14 = max(temp13[0][:,1]) + (side14/np.sqrt(3)) + (side15/np.sqrt(3))
+    
+    temp14 = pods_on_radius(radius14,side15,angle15)    
+
+    
+    # create one field list and plot
+    
+    field = [] # each entry in this list is a zone of heliopod / ring of heliopods
+    field.append(temp)
+    field.append(temp1)
+    field.append(temp2)
+    field.append(temp3)
+    field.append(temp4)
+    field.append(temp5)
+    field.append(temp6)
+    field.append(temp7)
+    field.append(temp8)
+    field.append(temp9)
+    field.append(temp10)
+    field.append(temp11)
+    field.append(temp12)
+    field.append(temp13)
+    field.append(temp14)
+    
+    return field
+
+#%% cornfield layout
+
+class dense_zone:
+    
+    def __init__(self,l,number_rows,width,r_min,tower_x,tower_y,field_y):
+        self.l = l                              # pod side length
+        self.r = self.l / np.sqrt(3)            # radius of circle into which pod fits        
+        self.d_row = (3/4)*np.sqrt(3)*self.r*2  # distance between pod centres in x
+        self.d_col = 1.25*self.r                # distance between pod centres in y
+        self.width = width                      # allowed width of zone
+        self.max_rows = number_rows             # maximum allows rows
+        self.r_min = r_min                      # tower exclusion zone
+        self.tower_x = tower_x
+        self.tower_y = tower_y
+        self.field_y_c = field_y       
+        self.heliostat_field = []         
+        
+# =============================================================================        
+    # method to generate heliostat positions from pod centres
+# =============================================================================
+    def pod_from_centre(self,x_c,y_c,l,orientation):
+            
+        r = l/np.sqrt(3) 
+        pod = np.empty((6,2),dtype=float)
+        
+        if orientation == 'up':
+        
+            pod[0,0] = x_c
+            pod[0,1] = y_c + r
+            pod[1,0] = x_c - (np.sqrt(3)/4)*r
+            pod[1,1] = y_c + 0.25*r
+            pod[2,0] = x_c + (np.sqrt(3)/4)*r
+            pod[2,1] = y_c + 0.25*r
+            pod[3,0] = x_c - l/2
+            pod[3,1] = y_c - 0.5*r
+            pod[4,0] = x_c
+            pod[4,1] = y_c - 0.5*r
+            pod[5,0] = x_c + l/2
+            pod[5,1] = y_c - 0.5*r
+            
+        elif orientation == 'down':
+            
+            pod[0,0] = x_c
+            pod[0,1] = y_c - r
+            pod[1,0] = x_c + (np.sqrt(3)/4)*r
+            pod[1,1] = y_c - 0.25*r
+            pod[2,0] = x_c - (np.sqrt(3)/4)*r
+            pod[2,1] = y_c - 0.25*r
+            pod[5,0] = x_c - l/2
+            pod[5,1] = y_c + 0.5*r
+            pod[4,0] = x_c
+            pod[4,1] = y_c + 0.5*r
+            pod[3,0] = x_c + l/2
+            pod[3,1] = y_c + 0.5*r
+        
+        return pod
+        
+# =============================================================================        
+    # method to place pods in densly packed pattern
+# =============================================================================        
+    def zone_pattern(self):
+        
+        field_x = [] # list containing the x co-ords of pod centres
+        field_y = [] # list containt the y co-ords of pod centres
+        
+        row_number = 1 # row counter
+        
+        # iterate over rows and place and stagger pod centres
+        while row_number <= self.max_rows: 
+            
+            # Determine y co-ord of row
+            if row_number % 2 == 0: # even rowed pods
+                pod_y = pod_y + self.d_col 
+            elif row_number % 2 > 0 and row_number > 1: # odd rowed pods
+                pod_y = pod_y + self.d_col + 1.5 # every odd rows pod has extra 1.5 m spacing 
+            elif row_number == 1:
+                pod_y = self.d_col + self.field_y_c
+            
+            # Determine first x postion of new row ie to alternate or not
+            if row_number % 2 == 0:
+                pod_x = np.array([0],dtype=float) # first pod on centre line
+            else:
+                pod_x = np.array([self.d_row/2],dtype=float) # first pod off centre line 
+            
+            # re calc first pod on a row if it falls in tower exclusion zone
+            while ((pod_x[0]-self.tower_x)**2 + (pod_y-self.tower_y)**2)**0.5 < self.r_min:
+                pod_x[0] = pod_x[0] + self.d_row
+            
+            # Fill a certain row with pods
+            while pod_x[-1] < self.width/2 - self.d_row: # place pods while last pod centre x co-ords is less than allowed zone width
+                if row_number % 2 == 0:
+                    pod_x = np.append(pod_x,pod_x[-1] + self.d_row) 
+                else:
+                    pod_x = np.append(pod_x,pod_x[-1] + self.d_row)
+            
+            
+            # Save row pod centres to field        
+            if row_number == 1:
+                field_x.append(pod_x) 
+                temp_y = np.full(len(pod_x),pod_y)
+                field_y.append(temp_y)
+            elif row_number > 1:
+                field_x.append(pod_x)
+                temp_y = np.full(len(pod_x),pod_y)
+                field_y.append(temp_y)        
+                
+            row_number += 1 # increment row number
+            
+            # Save negative x pods, ie reflect over y axis
+            field_neg_x = []
+            field_neg_y= []
+            
+            for i in range(len(field_x)):
+                temp_neg_row = []
+                temp_neg_col = []
+                for k in range(len(field_x[i])):
+                    if field_x[i][k] > 0:
+                        temp_neg_row.append(-field_x[i][k])
+                        temp_neg_col.append(field_y[i][k])
+                field_neg_x.append(temp_neg_row)
+                field_neg_y.append(temp_neg_col)
+
+        # determine heliostat positons for each pod
+            
+        field_heliostats = []
+        
+        for i in range(len(field_x)):
+            for k in range(len(field_x[i])):
+                if i % 2 == 0: 
+                    field_heliostats.append(self.pod_from_centre(field_x[i][k],field_y[i][k],self.l,'up'))
+                else:
+                    field_heliostats.append(self.pod_from_centre(field_x[i][k],field_y[i][k],self.l,'down'))
+                    
+        for i in range(len(field_neg_x)):
+            for k in range(len(field_neg_x[i])):
+                if i % 2 == 0: 
+                    field_heliostats.append(self.pod_from_centre(field_neg_x[i][k],field_neg_y[i][k],self.l,'up'))
+                else:
+                    field_heliostats.append(self.pod_from_centre(field_neg_x[i][k],field_neg_y[i][k],self.l,'down'))
+           
+        self.heliostat_field = field_heliostats
+        
+        return field_x, field_y, field_neg_x, field_neg_y, field_heliostats
+
+# =============================================================================        
+    # method to generate plot field layout
+# =============================================================================        
+    def plot(self):
+        
+        field_x, field_y, field_neg_x, field_neg_y, field_heliostats = self.zone_pattern() # call zone pattern method
+        
+        plt.figure()
+        for i in range(len(field_x)): # plot pod centres
+            plt.plot(field_x[i],field_y[i],'b*')
+            
+        for i in range(len(field_neg_x)): # plot negative x pod centres
+            plt.plot(field_neg_x[i],field_neg_y[i],'bs')
+            
+        for i in range(len(field_heliostats)):# plot heliostats on a pod
+            pod_array = np.empty((7,2),dtype=float)
+            
+            pod_array[0,:] = field_heliostats[i][0,:]
+            pod_array[1,:] = field_heliostats[i][1,:]
+            pod_array[2,:] = field_heliostats[i][3,:]
+            pod_array[3,:] = field_heliostats[i][4,:]
+            pod_array[4,:] = field_heliostats[i][5,:]
+            pod_array[5,:] = field_heliostats[i][2,:]
+            pod_array[6,:] = field_heliostats[i][0,:]
+            
+            plt.plot(pod_array[:,0],pod_array[:,1],'ro-')
+        
+        # plot bounding circles for each heliostats
+        radius = ((1.83**2 + 1.22**2)**0.5)/2
+        
+        for i in range(len(field_heliostats)):
+            for k in range(6):
+                heliostat_bound_circle = get_x_y_co([field_heliostats[i][k,0],field_heliostats[i][k,1],radius])
+                plt.plot(heliostat_bound_circle[:,0],heliostat_bound_circle[:,1],'k.',markersize=0.5)
+            
+        
+        plt.grid(True)
+        plt.show()
+        plt.axis('equal')
+
+def field_layout(width):
+    
+    widths = np.zeros((10,1))
+    for i in range(10):
+        widths[i] = width[i]*160
+    # widths[10] = 4.6#width[10]*10
+    # widths[11] = 4.6#wwidth[11]*10  
+    # widths[12] = 4.6#wwidth[12]*10
+    # widths[13] = 4.6#wwidth[13]*10
+    # widths[14] = 4.6#wwidth[14]*10
+    
+    zone_1 = dense_zone(4.6, 2, widths[0],8,0,0,0) # initialize class instance
+    zone_1.zone_pattern()
+    
+    x_start_2 = zone_1.d_col*2 + 1.5
+    
+    zone_2 = dense_zone(4.6, 2, widths[1],8,0,0,x_start_2) 
+    zone_2.zone_pattern()
+    
+    x_start_3 = zone_1.d_col*2 + zone_2.d_col*2 + 1.5*2
+    
+    zone_3 = dense_zone(4.6, 2, widths[2],8,0,0,x_start_3) 
+    zone_3.zone_pattern()
+    
+    x_start_4 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 + 1.5*3
+    
+    zone_4 = dense_zone(4.6, 2, widths[3],8,0,0,x_start_4)
+    zone_4.zone_pattern()
+    
+    x_start_5 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + 1.5*4
+    
+    zone_5 = dense_zone(4.6, 2, widths[4],8,0,0,x_start_5) 
+    zone_5.zone_pattern()
+    
+    x_start_6 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + 1.5*5
+    
+    zone_6 = dense_zone(4.6, 2, widths[5],8,0,0,x_start_6) 
+    zone_6.zone_pattern()
+    
+    x_start_7 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + 1.5*6
+    
+    zone_7 = dense_zone(4.6, 2, widths[6],8,0,0,x_start_7)
+    zone_7.zone_pattern()
+    
+    x_start_8 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + 1.5*7
+    
+    zone_8 = dense_zone(4.6, 2, widths[7],8,0,0,x_start_8)
+    zone_8.zone_pattern()
+    
+    x_start_9 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + zone_8.d_col*2 + 1.5*8
+    
+    zone_9 = dense_zone(4.6, 2, widths[8],8,0,0,x_start_9)
+    zone_9.zone_pattern()
+    
+    x_start_10 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + zone_8.d_col*2 + zone_9.d_col*2 + 1.5*9
+    
+    zone_10 = dense_zone(4.6, 2, widths[9],8,0,0,x_start_10)
+    zone_10.zone_pattern()
+    
+    
+    # add all zone's pods to one list
+    field = []
+    field.append(zone_1.heliostat_field)
+    field.append(zone_2.heliostat_field)
+    field.append(zone_3.heliostat_field)
+    field.append(zone_4.heliostat_field)
+    field.append(zone_5.heliostat_field)
+    field.append(zone_6.heliostat_field)
+    field.append(zone_7.heliostat_field)
+    field.append(zone_8.heliostat_field)
+    field.append(zone_9.heliostat_field)
+    field.append(zone_10.heliostat_field)
+
+    
+    return field
+
+#%% plots
+
+# 20 m radial plot
+
+radial_field = radial_layout([1.        , 1.        , 1.        , 1.        , 1.        ,
+       1.        , 0.91236024, 0.85, 0.8, 0.8,
+       0.75  , 0.75, 0.7, 0.65, 0.5,
+       0.46      , 0.46      , 0.46      , 0.46      , 0.46      ,
+       0.46      , 0.48167214, 0.48434613, 0.58297364, 0.59107952,
+       0.67819655, 0.68605307, 0.78622116, 0.79877509, 0.90573271])
+
+plt.figure(figsize=(10,10))
+pod_count = 0
+heliostat_field = np.empty((1,2),dtype=float)
+for k in range(len(radial_field)):# plot heliostats on a pod
+    for i in range(len(radial_field[k])):
+        pod_array = np.empty((7,2),dtype=float)
+        
+        pod_array[0,:] = radial_field[k][i][0,:]
+        pod_array[1,:] = radial_field[k][i][1,:]
+        pod_array[2,:] = radial_field[k][i][3,:]
+        pod_array[3,:] = radial_field[k][i][4,:]
+        pod_array[4,:] = radial_field[k][i][5,:]
+        pod_array[5,:] = radial_field[k][i][2,:]
+        pod_array[6,:] = radial_field[k][i][0,:]
+    
+  
+        plt.plot(pod_array[:,0],pod_array[:,1]*-1,'k-',linewidth=1)
+        plt.plot(pod_array[:,0],pod_array[:,1]*-1,'go',markersize=3)
+
+    
+plt.grid(True)
+# plt.axis('equal')
+plt.ylabel('Y postion [m]',fontsize=25)
+plt.xlabel('X position [m]',fontsize=25)
+plt.yticks(fontsize=20)
+plt.xticks(fontsize=20)
+plt.ylim([-150,50])
+plt.xlim([-100,100])
+plt.show()
+
+# 40 m cornfield plot
+
+corn_field = field_layout([0.62017615, 0.68396159, 0.70534338, 0.71263257, 0.70686125,
+       0.6800833 , 0.65630988, 0.59280643, 0.54013676, 0.46683587])
+
+plt.figure(figsize=(10,10))
+pod_count = 0
+heliostat_field = np.empty((1,2),dtype=float)
+for k in range(len(corn_field)):# plot heliostats on a pod
+    for i in range(len(corn_field[k])):
+        pod_array = np.empty((7,2),dtype=float)
+        
+        pod_array[0,:] = corn_field[k][i][0,:]
+        pod_array[1,:] = corn_field[k][i][1,:]
+        pod_array[2,:] = corn_field[k][i][3,:]
+        pod_array[3,:] = corn_field[k][i][4,:]
+        pod_array[4,:] = corn_field[k][i][5,:]
+        pod_array[5,:] = corn_field[k][i][2,:]
+        pod_array[6,:] = corn_field[k][i][0,:]
+    
+  
+        plt.plot(pod_array[:,0],pod_array[:,1]*-1,'k-',linewidth=1)
+        plt.plot(pod_array[:,0],pod_array[:,1]*-1,'go',markersize=3)
+
+    
+plt.grid(True)
+plt.ylim([-100,40])
+plt.xlim([-70,70])
+plt.ylabel('Y postion [m]',fontsize=25)
+plt.xlabel('X position [m]',fontsize=25)
+plt.yticks(fontsize=20)
+plt.xticks(fontsize=20)
+plt.show()
+
+# solarpilot 20 field
+
+heliostat_field = np.genfromtxt('../20_tower_field.csv',delimiter=',')
+
+plt.figure(figsize=(10,10))
+plt.plot(heliostat_field[:,0],heliostat_field[:,1],'go',ms=3)
+plt.grid(True)
+plt.ylim([-150,50])
+plt.xlim([-100,100])
+plt.ylabel('Y postion [m]',fontsize=25)
+plt.xlabel('X position [m]',fontsize=25)
+plt.yticks(fontsize=20)
+plt.xticks(fontsize=20)
+plt.show()
+
+# solarpilot 40 field
+
+heliostat_field = np.genfromtxt('../40_tower_field.csv',delimiter=',')
+
+plt.figure(figsize=(10,10))
+plt.plot(heliostat_field[:,0],heliostat_field[:,1],'go',ms=3)
+plt.grid(True)
+plt.ylim([-100,40])
+plt.xlim([-70,70])
+plt.ylabel('Y postion [m]',fontsize=25)
+plt.xlabel('X position [m]',fontsize=25)
+plt.yticks(fontsize=20)
+plt.xticks(fontsize=20)
+plt.show()
+

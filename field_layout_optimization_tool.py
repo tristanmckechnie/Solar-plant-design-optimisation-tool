@@ -463,23 +463,29 @@ def radial_layout(x):
     angle10 = x[9]*90
     angle11 = x[10]*90
     angle12 = x[11]*90
+    angle13 = x[12]*90
+    angle14 = x[13]*90
+    angle15 = x[14]*90
     
-    side1 = x[12]*10
-    side2 = x[13]*10
-    side3 = x[14]*10
-    side4 = x[15]*10
-    side5 = x[16]*10
-    side6 = x[17]*10
-    side7 = x[18]*10
-    side8 = x[19]*10
-    side9 = x[20]*10
-    side10 = x[21]*10
-    side11 = x[22]*10
-    side12 = x[23]*10 
+    side1 = x[15]*10
+    side2 = x[16]*10
+    side3 = x[17]*10
+    side4 = x[18]*10
+    side5 = x[19]*10
+    side6 = x[20]*10
+    side7 = x[21]*10
+    side8 = x[22]*10
+    side9 = x[23]*10
+    side10 = x[24]*10
+    side11 = x[25]*10
+    side12 = x[26]*10 
+    side13 = x[27]*10
+    side14 = x[28]*10
+    side15 = x[29]*10
     
     # generate zones
     
-    temp = pods_on_radius(15,side1,angle1)
+    temp = pods_on_radius(12,side1,angle1)
     radius1 = max(temp[0][:,1]) + (side1/np.sqrt(3)) + (side2/np.sqrt(3))
     
     temp1 = pods_on_radius(radius1,side2,angle2)
@@ -513,6 +519,16 @@ def radial_layout(x):
     radius11 = max(temp10[0][:,1]) + (side11/np.sqrt(3)) + (side12/np.sqrt(3))
     
     temp11 = pods_on_radius(radius11,side12,angle12)
+    radius12 = max(temp11[0][:,1])  + (side12/np.sqrt(3)) + (side13/np.sqrt(3))
+    
+    temp12 = pods_on_radius(radius12,side13,angle13)
+    radius13 = max(temp12[0][:,1]) + (side13/np.sqrt(3)) + (side14/np.sqrt(3))
+    
+    temp13 = pods_on_radius(radius13,side14,angle14)
+    radius14 = max(temp13[0][:,1]) + (side14/np.sqrt(3)) + (side15/np.sqrt(3))
+    
+    temp14 = pods_on_radius(radius14,side15,angle15)    
+
     
     # create one field list and plot
     
@@ -529,6 +545,9 @@ def radial_layout(x):
     field.append(temp9)
     field.append(temp10)
     field.append(temp11)
+    field.append(temp12)
+    field.append(temp13)
+    field.append(temp14)
     
     # plot field
     
@@ -841,11 +860,16 @@ print('Optimization runtime: ', time_after - time_before)
 # Field layout generation 
 # =============================================================================
 
-tower_height = 40
+tower_height = 21
 
-heliostat_field = field_layout([0.6, 0.62, 0.65, 0.65, 0.7,
-       0.9 , 0.8, 0.7, 0.65, 0.54])
-
+# heliostat_field = field_layout([0.6, 0.62, 0.65, 0.65, 0.7,
+#        0.9 , 0.8, 0.7, 0.65, 0.54])
+heliostat_field = radial_layout([1.        , 1.        , 1.        , 1.        , 1.        ,
+       1.        , 0.91236024, 0.85, 0.8, 0.8,
+       0.75  , 0.75, 0.7, 0.65, 0.5,
+       0.46      , 0.46      , 0.46      , 0.46      , 0.46      ,
+       0.46      , 0.48167214, 0.48434613, 0.58297364, 0.59107952,
+       0.67819655, 0.68605307, 0.78622116, 0.79877509, 0.90573271])
 # =============================================================================    
 # run optical simulation 
 # =============================================================================    
