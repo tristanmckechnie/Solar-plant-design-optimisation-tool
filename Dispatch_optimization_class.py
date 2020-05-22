@@ -656,12 +656,12 @@ no_helios = 1527
 penality_val = 0
 
 # create object instance and time simulation
-# bloob_mmfd = Dispatch(start,days,receiver_data,tariff_data,time_horizon,process_output, TES_hours, E_start, no_helios,penality_val)  # initialize a 'Dispatch' object 
+bloob_mmfd = Dispatch(start,days,receiver_data,tariff_data,time_horizon,process_output, TES_hours, E_start, no_helios,penality_val)  # initialize a 'Dispatch' object 
 bloob_slsqp = Dispatch(start,days,receiver_data,tariff_data,time_horizon,process_output, TES_hours, E_start, no_helios,penality_val)
 
 # run rolling time-horizon optimization object method
 start_clock = time.process_time()
-# bloob_mmfd.rolling_optimization('dot','zeros',0) # run mmfd with random starting guesses
+bloob_mmfd.rolling_optimization('dot','random',0) # run mmfd with random starting guesses
 bloob_slsqp.rolling_optimization('scipy','zeros',0) # run slsqp with mmfd starting guesses , bloob_mmfd.discharge
 
 

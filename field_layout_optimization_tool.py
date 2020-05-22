@@ -1,21 +1,29 @@
+# math import packages
 import numpy as np
 import matplotlib.pyplot as plt
 import random
 import math
 import time
 
+# some heliopod field layout functions
 from HeliopodTools import get_x_y_co
 from HeliopodTools import heliopod_cornfield
 from HeliopodTools import heliopod
+
+# optical and dispatch classes
 import optical_model_class as opt
 import Dispatch_optimization_class_for_import as disp
 
+# optimization import packages
 from scipy.optimize import minimize
+import dot as dot
 
+# run c++ executable and read and write Sunflower input and output JSON files
 import subprocess as sp
 import json
-from sun_pos import *
 
+# Sun tracking algorithm
+from sun_pos import *
 
 # needed for 3d interpolation
 from scipy.interpolate import LinearNDInterpolator
@@ -604,7 +612,7 @@ def field_layout_sim(x):
     
     time_before = time.time()
     # initialize
-    test_simulation = opt.optical_model(-27.24,22.902,'north',2,1.83,1.22,[50],21,45,20,4,num_helios,"../code/build/sunflower_tools/Sunflower","../data/my_field_tests") # initiaze object of type optical_model
+    test_simulation = opt.optical_model(-27.24,22.902,'north',2,1.83,1.22,[50],20,45,20,4,num_helios,"../code/build/sunflower_tools/Sunflower","../data/my_field_tests") # initiaze object of type optical_model
     
     # set jsons
     test_simulation.heliostat_inputs() # set heliostat parameters
@@ -833,26 +841,93 @@ con3 = {'type': 'ineq','fun': constraint3}
 
 con = [con3]
 
-bound = (0.1,90/90)
-bnds = np.full((12,2),bound)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-x0 = [0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46] #,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
+bound = (0,90/90)
+bnds = np.full((15,2),bound)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+x0 = [0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1] #,,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
 time_before = time.time()
 result = minimize(objective,x0,method='SLSQP',bounds=bnds,tol=1e-5,options={'maxiter':150,'disp': True,'eps':0.1}) # 'eps':0.5'rhobeg':30/160
 time_after = time.time()
 print(result)
 print('Optimization runtime: ', time_after - time_before)
+
+#%% dot field layout optimization
+obj_func = []
+def myEvaluate(x, obj, g, param): # this is the objective function and constraints evaluation 
+
+    # Evaluate the objective function value and use the ".value" notation to
+    # update this new value in the calling function, which is DOT in this
+    # case
+
+    eff, noon_power, yearly_sun_angles, LCOH, no_helios = field_layout_sim(x)
+    print('*****************************************************************')
+    print('Guesses:',x,' Efficiency:', eff, ' LCOH_{comb}: ', LCOH, '# Helios: ', no_helios)
+    print('*****************************************************************')
+    
+    print(type(x))
+    
+    obj_func.append(LCOH)
+    obj.value = LCOH
+    # Evaluate the constraints and update the constraint vector.  Since this 
+    # is a numpy object, the values will be updated in the calling function
+    
+    return 
+
+
+#------------------------------------------------------------------------------
+# The main code that setup the optimization problem and calls DOT to solve the
+# problem
+#------------------------------------------------------------------------------
+nDvar = 30  # Number of design variables
+nCons = 0  # Number of constraints
+
+# Create numpy arrays for the initial values and lower and upper bounds of the
+# design variables
+x  = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46])
+xl = np.zeros(nDvar, float)
+xu = np.full(nDvar,1, float)
+
+# lower bounds for pod side lengths
+for i in np.arange(15,30,1):
+    xl[i] = 0.46
+    
+# Initialize the DOT wrapper - this will load the shared library
+aDot = dot.dot(nDvar)
+
+# Set some of the DOT parameters
+aDot.nPrint   = 2
+aDot.nMethod  = 2 # this is BFGS method
+
+# Set the function to call for evaluating the objective function and constraints
+aDot.evaluate = myEvaluate
+
+
+# Call DOT to perform the optimization
+start_clock = time.process_time()
+dotRet = aDot.dotcall(x, xl, xu, nCons)
+nDvar_clock = time.process_time()
+
+# Print the DOT return values, this will be the final Objective function value,
+# the worst constaint value at the optimum and the optimum design variable 
+# values.  This is returned as a numpy array.
+print('######################################################################')
+print('Execution time: ', nDvar_clock - start_clock)
+print('######################################################################')
+print( '\nFinal, optimum results from DOT:' )
+print( dotRet )
+
+
 
 #%% Field layout simulation for single simulaiton
 # width = [0.74001329, 0.74040735 ,0.6760284 , 0.66625524 ,0.65284402, 0.47707358 ,0.81066323 ,0.60202479, 0.57302514 ,0.54827877]
@@ -862,14 +937,17 @@ print('Optimization runtime: ', time_after - time_before)
 
 tower_height = 21
 
-# heliostat_field = field_layout([0.6, 0.62, 0.65, 0.65, 0.7,
-#        0.9 , 0.8, 0.7, 0.65, 0.54])
-heliostat_field = radial_layout([1.        , 1.        , 1.        , 1.        , 1.        ,
-       1.        , 0.91236024, 0.85, 0.8, 0.8,
-       0.75  , 0.75, 0.7, 0.65, 0.5,
-       0.46      , 0.46      , 0.46      , 0.46      , 0.46      ,
-       0.46      , 0.48167214, 0.48434613, 0.58297364, 0.59107952,
-       0.67819655, 0.68605307, 0.78622116, 0.79877509, 0.90573271])
+heliostat_field = field_layout([3.61464811e-03 ,6.74430871e-01,
+ 7.34215185e-01, 7.54053826e-01, 7.00942839e-01, 7.35492873e-01,
+ 7.21179284e-01, 6.49731859e-01, 5.58015541e-01, 4.28308783e-01,
+ 3.14998062e-01 ,1.88161230e-01 ,6.44934480e-02, 0.00000000e+00,
+ 0.00000000e+00])
+# heliostat_field = radial_layout([1.        , 1.        , 1.        , 1.        , 1.        ,
+       # 1.        , 0.91236024, 0.85, 0.8, 0.8,
+       # 0.75  , 0.75, 0.7, 0.65, 0.5,
+       # 0.46      , 0.46      , 0.46      , 0.46      , 0.46      ,
+       # 0.46      , 0.48167214, 0.48434613, 0.58297364, 0.59107952,
+       # 0.67819655, 0.68605307, 0.78622116, 0.79877509, 0.90573271])
 # =============================================================================    
 # run optical simulation 
 # =============================================================================    

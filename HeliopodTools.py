@@ -50,6 +50,8 @@ def heliopod(x_c,y_c,l,x_t,y_t,orientation): # this class determines the locatio
     
     # Parameters that define first heliostat position on circle, vertex points to tower
     theta = math.atan((y_c-centre[1])/(x_c-centre[0]))
+    if x_c-centre[0] < 0.1:
+        print(x_c, centre[0])
     if orientation == 0: # vertex toward tower
         line_length = ((x_c-centre[0])**2 + (y_c-centre[1])**2)**0.5 - r
     elif orientation > 0:
