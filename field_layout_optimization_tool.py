@@ -1,6 +1,7 @@
 # math import packages
 import numpy as np
 import matplotlib.pyplot as plt
+# plt.rcParams['text.usetex'] =  True
 import random
 import math
 import time
@@ -928,7 +929,42 @@ print( '\nFinal, optimum results from DOT:' )
 print( dotRet )
 
 
+#%% line through multi-dimensional space
 
+a = np.array([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46])
+b = np.array([0.96266907 , 0.96071383 , 0.97042794,  0.94359616,
+  0.94352615  ,0.99955791 , 0.97918355,  0.91625159 , 0.99386083 , 0.89559284,
+  0.90468066 , 0.73593432 , 0.89190002,  0.8652417  , 0.81151632 , 0.47937211,
+  0.46       , 0.46       , 0.54567836,  0.46       , 0.46074733 , 0.46614045,
+  0.49883243 , 0.57969825 , 0.62839743,  0.72328074 , 0.64194406 , 0.72401024,
+  0.83909921 , 0.8084829 ])
+
+# vector from start to end
+u = b - a
+
+# steps along vector
+alpha = np.linspace(0,1.25,25)
+
+# evaluation objective function along vector
+
+def f_alpha(start, vector, step):
+    eff, noon_power, yearly_sun_angles, LCOH, no_helios = field_layout_sim(start + step*vector)
+    return LCOH
+
+# loop over vector and steps
+f_alpha_vals = np.zeros(len(alpha))
+count = 0
+for i in alpha:
+    print('Iteration number: ',count)
+    f_alpha_vals[count] = f_alpha(a,u,i)
+    count += 1
+#%%
+plt.figure()
+plt.plot(alpha,f_alpha_vals,'k*-')
+plt.ylabel('f(\alpha)')
+plt.xlabel('\alpha')
+plt.show()
+    
 #%% Field layout simulation for single simulaiton
 # width = [0.74001329, 0.74040735 ,0.6760284 , 0.66625524 ,0.65284402, 0.47707358 ,0.81066323 ,0.60202479, 0.57302514 ,0.54827877]
 # =============================================================================
