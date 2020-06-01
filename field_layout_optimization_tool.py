@@ -227,88 +227,94 @@ class dense_zone:
 
 #%% cornfield layout simulation tool
 
-def field_layout(width):
+def field_layout(x):
     
     widths = np.zeros((15,1))
     for i in range(15):
-        widths[i] = width[i]*160
-    # widths[10] = 4.6#width[10]*10
-    # widths[11] = 4.6#wwidth[11]*10  
-    # widths[12] = 4.6#wwidth[12]*10
-    # widths[13] = 4.6#wwidth[13]*10
-    # widths[14] = 4.6#wwidth[14]*10
+        widths[i] = x[i]*160
+        
+    side = np.zeros((15,1))
+    count = 0
+    for i in np.arange(15,30,1):
+        side[count] = x[i]*10
+        count += 1
+    # widths[10] = width[10]*10
+    # widths[11] = width[11]*10  
+    # widths[12] = width[12]*10
+    # widths[13] = width[13]*10
+    # widths[14] = width[14]*10
     
-    zone_1 = dense_zone(4.6, 2, widths[0],8,0,0,0) # initialize class instance
+    zone_1 = dense_zone(side[0], 2, widths[0],8,0,0,0) # initialize class instance
     zone_1.zone_pattern()
     
     x_start_2 = zone_1.d_col*2 + 1.5
     
-    zone_2 = dense_zone(4.6, 2, widths[1],8,0,0,x_start_2) 
+    zone_2 = dense_zone(side[1], 2, widths[1],8,0,0,x_start_2) 
     zone_2.zone_pattern()
     
     x_start_3 = zone_1.d_col*2 + zone_2.d_col*2 + 1.5*2
     
-    zone_3 = dense_zone(4.6, 2, widths[2],8,0,0,x_start_3) 
+    zone_3 = dense_zone(side[2], 2, widths[2],8,0,0,x_start_3) 
     zone_3.zone_pattern()
     
     x_start_4 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 + 1.5*3
     
-    zone_4 = dense_zone(4.6, 2, widths[3],8,0,0,x_start_4)
+    zone_4 = dense_zone(side[3], 2, widths[3],8,0,0,x_start_4)
     zone_4.zone_pattern()
     
     x_start_5 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + 1.5*4
     
-    zone_5 = dense_zone(4.6, 2, widths[4],8,0,0,x_start_5) 
+    zone_5 = dense_zone(side[4], 2, widths[4],8,0,0,x_start_5) 
     zone_5.zone_pattern()
     
     x_start_6 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + 1.5*5
     
-    zone_6 = dense_zone(4.6, 2, widths[5],8,0,0,x_start_6) 
+    zone_6 = dense_zone(side[5], 2, widths[5],8,0,0,x_start_6) 
     zone_6.zone_pattern()
     
     x_start_7 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + 1.5*6
     
-    zone_7 = dense_zone(4.6, 2, widths[6],8,0,0,x_start_7)
+    zone_7 = dense_zone(side[6], 2, widths[6],8,0,0,x_start_7)
     zone_7.zone_pattern()
     
     x_start_8 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + 1.5*7
     
-    zone_8 = dense_zone(4.6, 2, widths[7],8,0,0,x_start_8)
+    zone_8 = dense_zone(side[7], 2, widths[7],8,0,0,x_start_8)
     zone_8.zone_pattern()
     
     x_start_9 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + zone_8.d_col*2 + 1.5*8
     
-    zone_9 = dense_zone(4.6, 2, widths[8],8,0,0,x_start_9)
+    zone_9 = dense_zone(side[8], 2, widths[8],8,0,0,x_start_9)
     zone_9.zone_pattern()
     
     x_start_10 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + zone_8.d_col*2 + zone_9.d_col*2 + 1.5*9
     
-    zone_10 = dense_zone(4.6, 2, widths[9],8,0,0,x_start_10)
+    zone_10 = dense_zone(side[9], 2, widths[9],8,0,0,x_start_10)
     zone_10.zone_pattern()
     
     x_start_11 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + zone_8.d_col*2 + zone_9.d_col*2 + zone_10.d_col*2  + 1.5*10
     
-    zone_11 = dense_zone(4.6, 2, widths[10],8,0,0,x_start_11) 
+    zone_11 = dense_zone(side[10], 2, widths[10],8,0,0,x_start_11) 
     zone_11.zone_pattern()
     
     x_start_12 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + zone_8.d_col*2 + zone_9.d_col*2 + zone_10.d_col*2 + zone_11.d_col*2  + 1.5*11 
     
-    zone_12 = dense_zone(4.6, 2, widths[11],8,0,0,x_start_12)
+    zone_12 = dense_zone(side[11], 2, widths[11],8,0,0,x_start_12)
     zone_12.zone_pattern()
     
     x_start_13 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + zone_8.d_col*2 + zone_9.d_col*2 + zone_10.d_col*2 + zone_11.d_col*2 + zone_12.d_col*2  + 1.5*12
     
-    zone_13 = dense_zone(4.6, 2, widths[12],8,0,0,x_start_13)
+    zone_13 = dense_zone(side[12], 2, widths[12],8,0,0,x_start_13)
     zone_13.zone_pattern()
     
     x_start_14 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + zone_8.d_col*2 + zone_9.d_col*2 + zone_10.d_col*2 + zone_11.d_col*2 + zone_12.d_col*2 + zone_13.d_col*2  + 1.5*13
     
-    zone_14 = dense_zone(4.6, 2, widths[13],8,0,0,x_start_14)
+    zone_14 = dense_zone(side[13], 2, widths[13],8,0,0,x_start_14)
     zone_14.zone_pattern()
     
     x_start_15 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + zone_8.d_col*2 + zone_9.d_col*2 + zone_10.d_col*2 + zone_11.d_col*2 + zone_12.d_col*2 + zone_13.d_col*2 + zone_14.d_col*2  + 1.5*14                                              
     
-    zone_15 = dense_zone(4.6, 2, widths[14],8,0,0,x_start_15)
+    zone_15 = dense_zone(side[14], 2, widths[14],8,0,0,x_start_15)
     zone_15.zone_pattern()
     
     # add all zone's pods to one list
@@ -353,7 +359,7 @@ def field_layout(width):
     
         
     plt.grid(True)
-    # plt.axis('equal')
+    plt.axis('equal')
     plt.show()
     
     heliostat_field = np.delete(heliostat_field,0,axis=0) # delete initial empty row
@@ -598,7 +604,7 @@ def radial_layout(x):
 #%% Field layout sim
 
 def field_layout_sim(x):
-
+    tower_height = 20 
     # =============================================================================
     # Field layout generation 
     # =============================================================================
@@ -613,7 +619,7 @@ def field_layout_sim(x):
     
     time_before = time.time()
     # initialize
-    test_simulation = opt.optical_model(-27.24,22.902,'north',2,1.83,1.22,[50],20,45,20,4,num_helios,"../code/build/sunflower_tools/Sunflower","../data/my_field_tests") # initiaze object of type optical_model
+    test_simulation = opt.optical_model(-27.24,22.902,'north',2,1.83,1.22,[50],tower_height,45,20,4,num_helios,"../code/build/sunflower_tools/Sunflower","../data/my_field_tests") # initiaze object of type optical_model
     
     # set jsons
     test_simulation.heliostat_inputs() # set heliostat parameters
@@ -691,7 +697,7 @@ def field_layout_sim(x):
     
     #% CAPEX values
     
-    CAPEX_tower = 8288 + 1.73*(40**2.75);
+    CAPEX_tower = 8288 + 1.73*(tower_height**2.75);
     CAPEX_vert_transport = 140892;
     CAPEX_horz_transport = 248634;
     
@@ -844,19 +850,22 @@ con = [con3]
 
 bound = (0,90/90)
 bnds = np.full((15,2),bound)
-# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-x0 = [0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1] #,,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
+bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+x0 = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46] #,,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
 time_before = time.time()
 result = minimize(objective,x0,method='SLSQP',bounds=bnds,tol=1e-5,options={'maxiter':150,'disp': True,'eps':0.1}) # 'eps':0.5'rhobeg':30/160
 time_after = time.time()
@@ -931,13 +940,13 @@ print( dotRet )
 
 #%% line through multi-dimensional space
 
-a = np.array([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46])
-b = np.array([0.96266907 , 0.96071383 , 0.97042794,  0.94359616,
-  0.94352615  ,0.99955791 , 0.97918355,  0.91625159 , 0.99386083 , 0.89559284,
-  0.90468066 , 0.73593432 , 0.89190002,  0.8652417  , 0.81151632 , 0.47937211,
-  0.46       , 0.46       , 0.54567836,  0.46       , 0.46074733 , 0.46614045,
-  0.49883243 , 0.57969825 , 0.62839743,  0.72328074 , 0.64194406 , 0.72401024,
-  0.83909921 , 0.8084829 ])
+a = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46])
+b = np.array([ 0.90444844 , 0.1116664  , 0.99441326 , 0.39232466,
+  0.99957595  ,0.9833434   ,0.92706636 , 0.47940189 , 0.99884347,  0.82720079,
+  0.73257496  ,0.85217064  ,0.7412228  , 0.51745417 , 0.90933168,  0.49551154,
+  0.46        ,0.4960725   ,0.47121389 , 0.51864356 , 0.46      ,  0.46,
+  0.46        ,0.49222259  ,0.51344752 , 0.62801952 , 0.64563398,  0.91245609,
+  0.65542948  ,0.89236855 ])
 
 # vector from start to end
 u = b - a
@@ -971,19 +980,19 @@ plt.show()
 # Field layout generation 
 # =============================================================================
 
-tower_height = 21
+tower_height = 20
 
-heliostat_field = field_layout([3.61464811e-03 ,6.74430871e-01,
- 7.34215185e-01, 7.54053826e-01, 7.00942839e-01, 7.35492873e-01,
- 7.21179284e-01, 6.49731859e-01, 5.58015541e-01, 4.28308783e-01,
- 3.14998062e-01 ,1.88161230e-01 ,6.44934480e-02, 0.00000000e+00,
- 0.00000000e+00])
-# heliostat_field = radial_layout([1.        , 1.        , 1.        , 1.        , 1.        ,
-       # 1.        , 0.91236024, 0.85, 0.8, 0.8,
-       # 0.75  , 0.75, 0.7, 0.65, 0.5,
-       # 0.46      , 0.46      , 0.46      , 0.46      , 0.46      ,
-       # 0.46      , 0.48167214, 0.48434613, 0.58297364, 0.59107952,
-       # 0.67819655, 0.68605307, 0.78622116, 0.79877509, 0.90573271])
+# heliostat_field = field_layout([3.61464811e-03 ,6.74430871e-01,
+#  7.34215185e-01, 7.54053826e-01, 7.00942839e-01, 7.35492873e-01,
+#  7.21179284e-01, 6.49731859e-01, 5.58015541e-01, 4.28308783e-01,
+#  3.14998062e-01 ,1.88161230e-01 ,6.44934480e-02, 0.00000000e+00,
+#  0.00000000e+00])
+heliostat_field = radial_layout([1.        , 1.        , 1.        , 0.99997351, 1.        ,
+       0.97040694, 0.97077189, 0.90711827, 0.88049818, 0.85234781,
+       0.84547299, 0.85521646, 0.82130012, 0.79344309, 0.75878228,
+       0.46      , 0.46      , 0.46      , 0.46      , 0.46      ,
+       0.46      , 0.46004484, 0.46030344, 0.48258568, 0.52079309,
+       0.5910698 , 0.67176722, 0.72836889, 0.80272393, 0.80954531])
 # =============================================================================    
 # run optical simulation 
 # =============================================================================    
