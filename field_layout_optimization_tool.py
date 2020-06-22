@@ -117,7 +117,7 @@ class dense_zone:
             elif row_number % 2 > 0 and row_number > 1: # odd rowed pods
                 pod_y = pod_y + self.d_col + 1.5 # every odd rows pod has extra 1.5 m spacing 
             elif row_number == 1:
-                pod_y = self.d_col + self.field_y_c
+                pod_y =  self.field_y_c #self.d_col +
             
             # Determine first x postion of new row ie to alternate or not
             if row_number % 2 == 0:
@@ -246,8 +246,11 @@ def field_layout(x):
     for i in range(num_zones):
         zone = dense_zone(side[i], 2, widths[i],8,0,0,x_start) # initialize class instance
         zone.zone_pattern()   
-        d_col_rows.append(zone.d_col)
-        x_start = sum(d_col_rows)*2 + 1.5*len(d_col_rows)
+        d_col_rows.append(zone.d_col)      
+        if i < num_zones-1:
+            x_start = max(zone.heliostat_field[-1][:,1]) + side[i]/np.sqrt(6) + side[i+1]/np.sqrt(6)
+            print(max(zone.heliostat_field[-1][:,1]))
+        
         field.append(zone.heliostat_field)
  
     
@@ -692,14 +695,23 @@ con2 = {'type': 'ineq','fun': constraint2}
 con3 = {'type': 'ineq','fun': constraint3}
 
 con = [con3]
+# field size
+number_zones = 15
 
 # define bounds
 bound = (0,90/90)
 bnds = np.full((10,2),bound)
 for i in range(10):
     bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+    
+# initial guess for design variables
+x0 = np.zeros(number_zones*2)
+for i in range(number_zones):
+    x0[i] = random.random()
+for i in np.arange(number_zones,2*number_zones):
+    x0[i] = random.uniform(0.46,1)
 
-x0 = [1,1,1,1,1,1,1,1,1,1,0.46,0.46,0.46,0.46,0.46] #,,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
+# x0 = [1,1,1,1,1,1,1,1,1,1,0.46,0.46,0.46,0.46,0.46] #,,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
 time_before = time.time()
 result = minimize(objective,x0,method='SLSQP',bounds=bnds,tol=1e-3,options={'maxiter':150,'disp': True,'eps':0.1}) # 'eps':0.5'rhobeg':30/160
 time_after = time.time()
