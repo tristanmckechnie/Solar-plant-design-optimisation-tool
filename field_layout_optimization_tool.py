@@ -56,7 +56,8 @@ class dense_zone:
         self.tower_x = tower_x
         self.tower_y = tower_y
         self.field_y_c = field_y       
-        self.heliostat_field = []         
+        self.heliostat_field = []   
+        self.y_maxx = 0
         
 # =============================================================================        
     # method to generate heliostat positions from pod centres
@@ -117,7 +118,7 @@ class dense_zone:
             elif row_number % 2 > 0 and row_number > 1: # odd rowed pods
                 pod_y = pod_y + self.d_col + 1.5 # every odd rows pod has extra 1.5 m spacing 
             elif row_number == 1:
-                pod_y =  self.field_y_c #self.d_col +
+                pod_y =  self.field_y_c #+ self.r 
             
             # Determine first x postion of new row ie to alternate or not
             if row_number % 2 == 0:
@@ -183,6 +184,15 @@ class dense_zone:
            
         self.heliostat_field = field_heliostats
         
+        # find furthest away heliostat
+        y_max = 0
+        for i in range(len(field_heliostats)):
+            y_max_pod = max(field_heliostats[i][:,1])
+            if y_max_pod> y_max:
+                y_max = y_max_pod
+        self.y_maxx = y_max
+        print(y_max)
+        
         return field_x, field_y, field_neg_x, field_neg_y, field_heliostats
 
 # =============================================================================        
@@ -246,11 +256,16 @@ def field_layout(x):
     for i in range(num_zones):
         zone = dense_zone(side[i], 2, widths[i],8,0,0,x_start) # initialize class instance
         zone.zone_pattern()   
-        d_col_rows.append(zone.d_col)      
+        d_col_rows.append(zone.r)      
         if i < num_zones-1:
-            x_start = max(zone.heliostat_field[-1][:,1]) + side[i]/np.sqrt(6) + side[i+1]/np.sqrt(6)
-            print(max(zone.heliostat_field[-1][:,1]))
-        
+            x_start = zone.y_maxx + side[i+1]/np.sqrt(3) +1
+
+            # if side[i+1] > side[i]:
+            #     x_start = max(zone.heliostat_field[-1][:,1]) + side[i+1]/np.sqrt(3)*0.5  + side[i]/np.sqrt(3)
+            # elif side[i+1] < side[i]: 
+            #     x_start = max(zone.heliostat_field[-1][:,1]) + side[i]/np.sqrt(3) + 0.5*side[i]/np.sqrt(3)
+            # else:
+            #     x_start = max(zone.heliostat_field[-1][:,1]) + side[i]/np.sqrt(3) + 1.5
         field.append(zone.heliostat_field)
  
     
@@ -700,8 +715,8 @@ number_zones = 15
 
 # define bounds
 bound = (0,90/90)
-bnds = np.full((10,2),bound)
-for i in range(10):
+bnds = np.full((number_zones,2),bound)
+for i in range(number_zones):
     bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
     
 # initial guess for design variables
