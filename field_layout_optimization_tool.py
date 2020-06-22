@@ -388,12 +388,6 @@ def radial_layout(x):
     for i in np.arange(0,num_zones,1):
         angle[count] = x[i]*90
         count +=1
-    # for i in np.arange(0,5,1):
-    #     angle[i] = 1*90
-    # for i in np.arange(5,num_zones,1):
-    #     angle[i] = x[count]*90
-    #     count +=1
-    # print(count)
     # assign zone pod side lengths
     count = 0
     # count2 = 10
@@ -401,11 +395,6 @@ def radial_layout(x):
     for i in np.arange(num_zones,2*num_zones,1):
         side[count] = x[i]*10
         count +=1
-    # for i in np.arange(0,10,1):
-    #     side[i] = 4.6
-    # for i in np.arange(10,num_zones,1):
-    #     side[i] = x[count2]*10
-    #     count2 +=1
     # generate zones
     field  = []
     initial_radius = 12
@@ -465,8 +454,8 @@ def field_layout_sim(x):
     # Field layout generation 
     # =============================================================================
     
-    # heliostat_field = field_layout(x)
-    heliostat_field,angle,side = radial_layout(x)
+    heliostat_field = field_layout(x)
+    # heliostat_field,angle,side = radial_layout(x)
     
     # =============================================================================    
     # run optical simulation 
@@ -704,26 +693,15 @@ con3 = {'type': 'ineq','fun': constraint3}
 
 con = [con3]
 
+# define bounds
 bound = (0,90/90)
 bnds = np.full((10,2),bound)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+for i in range(10):
+    bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+
 x0 = [1,1,1,1,1,1,1,1,1,1,0.46,0.46,0.46,0.46,0.46] #,,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
 time_before = time.time()
-result = minimize(objective,x0,method='SLSQP',bounds=bnds,tol=1e-5,options={'maxiter':150,'disp': True,'eps':0.1}) # 'eps':0.5'rhobeg':30/160
+result = minimize(objective,x0,method='SLSQP',bounds=bnds,tol=1e-3,options={'maxiter':150,'disp': True,'eps':0.1}) # 'eps':0.5'rhobeg':30/160
 time_after = time.time()
 print(result)
 print('Optimization runtime: ', time_after - time_before)
