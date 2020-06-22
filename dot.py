@@ -19,6 +19,8 @@ class dot:
     nMaxInt = 20000000
     nmParam = nm.empty(1, float)
     nmRPRM  = nm.zeros(20, float)
+    nmRPRM[2] = 0.1
+    nmRPRM[3] = 0.0001
     nmRPRM[8] = 0.01
     nmRPRM[9] = 0.001
     nmIPRM  = nm.zeros(20, int)

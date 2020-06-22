@@ -228,112 +228,28 @@ class dense_zone:
 #%% cornfield layout simulation tool
 
 def field_layout(x):
-    
-    widths = np.zeros((15,1))
-    for i in range(15):
+    num_zones = 15
+    widths = np.zeros((num_zones,1))
+    for i in range(num_zones):
         widths[i] = x[i]*160
         
-    side = np.zeros((15,1))
+    side = np.zeros((num_zones,1))
     count = 0
-    for i in np.arange(15,30,1):
+    for i in np.arange(num_zones,2*num_zones,1): # 20 - > 30
         side[count] = x[i]*10
         count += 1
-    # widths[10] = width[10]*10
-    # widths[11] = width[11]*10  
-    # widths[12] = width[12]*10
-    # widths[13] = width[13]*10
-    # widths[14] = width[14]*10
-    
-    zone_1 = dense_zone(side[0], 2, widths[0],8,0,0,0) # initialize class instance
-    zone_1.zone_pattern()
-    
-    x_start_2 = zone_1.d_col*2 + 1.5
-    
-    zone_2 = dense_zone(side[1], 2, widths[1],8,0,0,x_start_2) 
-    zone_2.zone_pattern()
-    
-    x_start_3 = zone_1.d_col*2 + zone_2.d_col*2 + 1.5*2
-    
-    zone_3 = dense_zone(side[2], 2, widths[2],8,0,0,x_start_3) 
-    zone_3.zone_pattern()
-    
-    x_start_4 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 + 1.5*3
-    
-    zone_4 = dense_zone(side[3], 2, widths[3],8,0,0,x_start_4)
-    zone_4.zone_pattern()
-    
-    x_start_5 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + 1.5*4
-    
-    zone_5 = dense_zone(side[4], 2, widths[4],8,0,0,x_start_5) 
-    zone_5.zone_pattern()
-    
-    x_start_6 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + 1.5*5
-    
-    zone_6 = dense_zone(side[5], 2, widths[5],8,0,0,x_start_6) 
-    zone_6.zone_pattern()
-    
-    x_start_7 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + 1.5*6
-    
-    zone_7 = dense_zone(side[6], 2, widths[6],8,0,0,x_start_7)
-    zone_7.zone_pattern()
-    
-    x_start_8 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + 1.5*7
-    
-    zone_8 = dense_zone(side[7], 2, widths[7],8,0,0,x_start_8)
-    zone_8.zone_pattern()
-    
-    x_start_9 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + zone_8.d_col*2 + 1.5*8
-    
-    zone_9 = dense_zone(side[8], 2, widths[8],8,0,0,x_start_9)
-    zone_9.zone_pattern()
-    
-    x_start_10 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + zone_8.d_col*2 + zone_9.d_col*2 + 1.5*9
-    
-    zone_10 = dense_zone(side[9], 2, widths[9],8,0,0,x_start_10)
-    zone_10.zone_pattern()
-    
-    x_start_11 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + zone_8.d_col*2 + zone_9.d_col*2 + zone_10.d_col*2  + 1.5*10
-    
-    zone_11 = dense_zone(side[10], 2, widths[10],8,0,0,x_start_11) 
-    zone_11.zone_pattern()
-    
-    x_start_12 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + zone_8.d_col*2 + zone_9.d_col*2 + zone_10.d_col*2 + zone_11.d_col*2  + 1.5*11 
-    
-    zone_12 = dense_zone(side[11], 2, widths[11],8,0,0,x_start_12)
-    zone_12.zone_pattern()
-    
-    x_start_13 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + zone_8.d_col*2 + zone_9.d_col*2 + zone_10.d_col*2 + zone_11.d_col*2 + zone_12.d_col*2  + 1.5*12
-    
-    zone_13 = dense_zone(side[12], 2, widths[12],8,0,0,x_start_13)
-    zone_13.zone_pattern()
-    
-    x_start_14 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + zone_8.d_col*2 + zone_9.d_col*2 + zone_10.d_col*2 + zone_11.d_col*2 + zone_12.d_col*2 + zone_13.d_col*2  + 1.5*13
-    
-    zone_14 = dense_zone(side[13], 2, widths[13],8,0,0,x_start_14)
-    zone_14.zone_pattern()
-    
-    x_start_15 = zone_1.d_col*2 + zone_2.d_col*2 + zone_3.d_col*2 +  zone_4.d_col*2 + zone_5.d_col*2 + zone_6.d_col*2 + zone_7.d_col*2 + zone_8.d_col*2 + zone_9.d_col*2 + zone_10.d_col*2 + zone_11.d_col*2 + zone_12.d_col*2 + zone_13.d_col*2 + zone_14.d_col*2  + 1.5*14                                              
-    
-    zone_15 = dense_zone(side[14], 2, widths[14],8,0,0,x_start_15)
-    zone_15.zone_pattern()
-    
-    # add all zone's pods to one list
+
     field = []
-    field.append(zone_1.heliostat_field)
-    field.append(zone_2.heliostat_field)
-    field.append(zone_3.heliostat_field)
-    field.append(zone_4.heliostat_field)
-    field.append(zone_5.heliostat_field)
-    field.append(zone_6.heliostat_field)
-    field.append(zone_7.heliostat_field)
-    field.append(zone_8.heliostat_field)
-    field.append(zone_9.heliostat_field)
-    field.append(zone_10.heliostat_field)
-    field.append(zone_11.heliostat_field)
-    field.append(zone_12.heliostat_field)
-    field.append(zone_13.heliostat_field)
-    field.append(zone_14.heliostat_field)
-    field.append(zone_15.heliostat_field)
+    d_col_rows = []
+    initial_x_start = 0
+    x_start = initial_x_start
+    for i in range(num_zones):
+        zone = dense_zone(side[i], 2, widths[i],8,0,0,x_start) # initialize class instance
+        zone.zone_pattern()   
+        d_col_rows.append(zone.d_col)
+        x_start = sum(d_col_rows)*2 + 1.5*len(d_col_rows)
+        field.append(zone.heliostat_field)
+ 
     
     plt.figure(figsize=(10,10))
     pod_count = 0
@@ -463,107 +379,47 @@ def pods_on_radius(radius,side_lengths, allowed_angle): # angle must be in degre
 # test function
 
 def radial_layout(x):
+   
+    num_zones = 20 # number of radial zones
     
-    # assign variables
-
-    angle1 = x[0]*90
-    angle2 = x[1]*90
-    angle3 = x[2]*90
-    angle4 = x[3]*90
-    angle5 = x[4]*90
-    angle6 = x[5]*90
-    angle7 = x[6]*90
-    angle8 = x[7]*90
-    angle9 = x[8]*90
-    angle10 = x[9]*90
-    angle11 = x[10]*90
-    angle12 = x[11]*90
-    angle13 = x[12]*90
-    angle14 = x[13]*90
-    angle15 = x[14]*90
-    
-    side1 = x[15]*10
-    side2 = x[16]*10
-    side3 = x[17]*10
-    side4 = x[18]*10
-    side5 = x[19]*10
-    side6 = x[20]*10
-    side7 = x[21]*10
-    side8 = x[22]*10
-    side9 = x[23]*10
-    side10 = x[24]*10
-    side11 = x[25]*10
-    side12 = x[26]*10 
-    side13 = x[27]*10
-    side14 = x[28]*10
-    side15 = x[29]*10
-    
+    # assign zone angles
+    count = 0
+    angle = np.zeros(num_zones)
+    for i in np.arange(0,num_zones,1):
+        angle[count] = x[i]*90
+        count +=1
+    # for i in np.arange(0,5,1):
+    #     angle[i] = 1*90
+    # for i in np.arange(5,num_zones,1):
+    #     angle[i] = x[count]*90
+    #     count +=1
+    # print(count)
+    # assign zone pod side lengths
+    count = 0
+    # count2 = 10
+    side = np.zeros(num_zones)
+    for i in np.arange(num_zones,2*num_zones,1):
+        side[count] = x[i]*10
+        count +=1
+    # for i in np.arange(0,10,1):
+    #     side[i] = 4.6
+    # for i in np.arange(10,num_zones,1):
+    #     side[i] = x[count2]*10
+    #     count2 +=1
     # generate zones
-    
-    temp = pods_on_radius(12,side1,angle1)
-    radius1 = max(temp[0][:,1]) + (side1/np.sqrt(3)) + (side2/np.sqrt(3))
-    
-    temp1 = pods_on_radius(radius1,side2,angle2)
-    radius2 = max(temp1[0][:,1])  + (side2/np.sqrt(3)) + (side3/np.sqrt(3))
-    
-    temp2 = pods_on_radius(radius2,side3,angle3)
-    radius3 = max(temp2[0][:,1]) + (side3/np.sqrt(3)) + (side4/np.sqrt(3))
-    
-    temp3 = pods_on_radius(radius3,side4,angle4)
-    radius4 = max(temp3[0][:,1]) + (side4/np.sqrt(3)) + (side5/np.sqrt(3))
-    
-    temp4 = pods_on_radius(radius4,side5,angle5)
-    radius5 = max(temp4[0][:,1]) + (side5/np.sqrt(3)) + (side6/np.sqrt(3))
-    
-    temp5 = pods_on_radius(radius5,side6,angle6)
-    radius6 = max(temp5[0][:,1])  + (side6/np.sqrt(3)) + (side7/np.sqrt(3))
-    
-    temp6 = pods_on_radius(radius6,side7,angle7)
-    radius7 = max(temp6[0][:,1]) + (side7/np.sqrt(3)) + (side8/np.sqrt(3))
-    
-    temp7 = pods_on_radius(radius7,side8,angle8)
-    radius8 = max(temp7[0][:,1]) + (side8/np.sqrt(3)) + (side9/np.sqrt(3))
-    
-    temp8 = pods_on_radius(radius8,side9,angle9)
-    radius9 = max(temp8[0][:,1])  + (side9/np.sqrt(3)) + (side10/np.sqrt(3))
-    
-    temp9 = pods_on_radius(radius9,side10,angle10)
-    radius10 = max(temp9[0][:,1]) + (side10/np.sqrt(3)) + (side11/np.sqrt(3))
-    
-    temp10 = pods_on_radius(radius10,side11,angle11)
-    radius11 = max(temp10[0][:,1]) + (side11/np.sqrt(3)) + (side12/np.sqrt(3))
-    
-    temp11 = pods_on_radius(radius11,side12,angle12)
-    radius12 = max(temp11[0][:,1])  + (side12/np.sqrt(3)) + (side13/np.sqrt(3))
-    
-    temp12 = pods_on_radius(radius12,side13,angle13)
-    radius13 = max(temp12[0][:,1]) + (side13/np.sqrt(3)) + (side14/np.sqrt(3))
-    
-    temp13 = pods_on_radius(radius13,side14,angle14)
-    radius14 = max(temp13[0][:,1]) + (side14/np.sqrt(3)) + (side15/np.sqrt(3))
-    
-    temp14 = pods_on_radius(radius14,side15,angle15)    
+    field  = []
+    initial_radius = 12
+    radius = initial_radius
 
-    
-    # create one field list and plot
-    
-    field = [] # each entry in this list is a zone of heliopod / ring of heliopods
-    field.append(temp)
-    field.append(temp1)
-    field.append(temp2)
-    field.append(temp3)
-    field.append(temp4)
-    field.append(temp5)
-    field.append(temp6)
-    field.append(temp7)
-    field.append(temp8)
-    field.append(temp9)
-    field.append(temp10)
-    field.append(temp11)
-    field.append(temp12)
-    field.append(temp13)
-    field.append(temp14)
-    
+    for i in range(num_zones):
+        pods = pods_on_radius(radius,side[i],angle[i])
+        print(i)
+        if i < num_zones-1:
+            next_radius = max(pods[0][:,1]) + (side[i]/np.sqrt(3)) + (side[i+1]/np.sqrt(3))
+        radius = next_radius 
+        
+        field.append(pods) # add a zones of pods each time
+  
     # plot field
     
     plt.figure(figsize=(10,10))
@@ -598,19 +454,19 @@ def radial_layout(x):
     heliostat_field[:,1] = heliostat_field[:,1] * -1 # reflect across the x axis
     
     np.savetxt('../data/my_field_tests/positions.csv',heliostat_field,delimiter=",")
-    return heliostat_field
+    return heliostat_field,angle,side
 
 
 #%% Field layout sim
 
 def field_layout_sim(x):
-    tower_height = 20 
+    tower_height = 40 
     # =============================================================================
     # Field layout generation 
     # =============================================================================
     
     # heliostat_field = field_layout(x)
-    heliostat_field = radial_layout(x)
+    heliostat_field,angle,side = radial_layout(x)
     
     # =============================================================================    
     # run optical simulation 
@@ -743,7 +599,7 @@ def field_layout_sim(x):
     print('Solar heat generated, ', annual_heat_gen/1e6)
     print('########################################################################')
     
-    return annual_eta, receiver_power[1907],year_sun_angles,LCOH,no_helios
+    return annual_eta, receiver_power[1907],year_sun_angles,LCOH,no_helios,angle,side
 #%% single moment simulation for contraint 
 
 def square_to_circle(flux_map,num_elements):
@@ -821,9 +677,9 @@ def single_moment_simulation():
 obj_func = []
 
 def objective(x):
-    eff, noon_power, yearly_sun_angles, LCOH, no_helios = field_layout_sim(x)
+    eff, noon_power, yearly_sun_angles, LCOH, no_helios,angle,side = field_layout_sim(x)
     print('*****************************************************************')
-    print('Guesses:',x,' Efficiency:', eff, ' LCOH_{comb}: ', LCOH, '# Helios: ', no_helios)
+    print('Guesses:',angle,side,' Efficiency:', eff, ' LCOH_{comb}: ', LCOH, '# Helios: ', no_helios)
     print('*****************************************************************')
     
     obj_func.append(LCOH)
@@ -849,23 +705,23 @@ con3 = {'type': 'ineq','fun': constraint3}
 con = [con3]
 
 bound = (0,90/90)
-bnds = np.full((15,2),bound)
+bnds = np.full((10,2),bound)
 bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
 bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
 bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
 bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
 bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
-x0 = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46] #,,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+# bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+x0 = [1,1,1,1,1,1,1,1,1,1,0.46,0.46,0.46,0.46,0.46] #,,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
 time_before = time.time()
 result = minimize(objective,x0,method='SLSQP',bounds=bnds,tol=1e-5,options={'maxiter':150,'disp': True,'eps':0.1}) # 'eps':0.5'rhobeg':30/160
 time_after = time.time()
@@ -880,7 +736,7 @@ def myEvaluate(x, obj, g, param): # this is the objective function and constrain
     # update this new value in the calling function, which is DOT in this
     # case
 
-    eff, noon_power, yearly_sun_angles, LCOH, no_helios = field_layout_sim(x)
+    eff, noon_power, yearly_sun_angles, LCOH, no_helios,angle,side = field_layout_sim(x)
     print('*****************************************************************')
     print('Guesses:',x,' Efficiency:', eff, ' LCOH_{comb}: ', LCOH, '# Helios: ', no_helios)
     print('*****************************************************************')
@@ -892,6 +748,12 @@ def myEvaluate(x, obj, g, param): # this is the objective function and constrain
     # Evaluate the constraints and update the constraint vector.  Since this 
     # is a numpy object, the values will be updated in the calling function
     
+    ones = np.full((len(x)),1)
+    ans = x - ones
+    g[0:len(x)] = ans
+    
+    
+    
     return 
 
 
@@ -900,11 +762,11 @@ def myEvaluate(x, obj, g, param): # this is the objective function and constrain
 # problem
 #------------------------------------------------------------------------------
 nDvar = 30  # Number of design variables
-nCons = 0  # Number of constraints
+nCons = 30  # Number of constraints
 
 # Create numpy arrays for the initial values and lower and upper bounds of the
 # design variables
-x  = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46])
+x  = np.array([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46])
 xl = np.zeros(nDvar, float)
 xu = np.full(nDvar,1, float)
 
@@ -916,17 +778,17 @@ for i in np.arange(15,30,1):
 aDot = dot.dot(nDvar)
 
 # Set some of the DOT parameters
-aDot.nPrint   = 2
-aDot.nMethod  = 2 # this is BFGS method
+aDot.nPrint   = 4
+aDot.nMethod  = 1 # this is BFGS method
 
 # Set the function to call for evaluating the objective function and constraints
 aDot.evaluate = myEvaluate
 
 
 # Call DOT to perform the optimization
-start_clock = time.process_time()
+start_clock = time.time()
 dotRet = aDot.dotcall(x, xl, xu, nCons)
-nDvar_clock = time.process_time()
+nDvar_clock = time.time()
 
 # Print the DOT return values, this will be the final Objective function value,
 # the worst constaint value at the optimum and the optimum design variable 

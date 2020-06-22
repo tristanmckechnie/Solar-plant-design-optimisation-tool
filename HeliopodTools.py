@@ -49,6 +49,9 @@ def heliopod(x_c,y_c,l,x_t,y_t,orientation): # this class determines the locatio
     centre = np.array([x_t,y_t]) # Tower centre
     
     # Parameters that define first heliostat position on circle, vertex points to tower
+    # if x_c- centre[0] < 0.001:
+    #     theta = -np.pi/2
+    # else:
     theta = math.atan((y_c-centre[1])/(x_c-centre[0]))
     if x_c-centre[0] < 0.1:
         print(x_c, centre[0])
@@ -58,7 +61,7 @@ def heliopod(x_c,y_c,l,x_t,y_t,orientation): # this class determines the locatio
         line_length = ((x_c-centre[0])**2 + (y_c-centre[1])**2)**0.5 + r
     point = np.array([[line_length*math.cos(theta), line_length*math.sin(theta)]])
     
-    theta_2 = math.atan((point[0,1]-y_t)/(point[0,0]-x_t)) # sanity check, angle for centre and vertex must be equal
+    # theta_2 = math.atan((point[0,1]-y_t)/(point[0,0]-x_t)) # sanity check, angle for centre and vertex must be equal
     
     
     if x_c < 0:
