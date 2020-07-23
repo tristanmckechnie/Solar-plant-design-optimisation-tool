@@ -238,7 +238,7 @@ class dense_zone:
 #%% cornfield layout simulation tool
 
 def field_layout(x):
-    num_zones = 15
+    num_zones = 20
     widths = np.zeros((num_zones,1))
     for i in range(num_zones):
         widths[i] = x[i]*160
@@ -606,7 +606,7 @@ def field_layout_sim(x):
     print('Solar heat generated, ', annual_heat_gen/1e6)
     print('########################################################################')
     
-    return annual_eta, receiver_power[1907],year_sun_angles,LCOH,no_helios,angle,side
+    return annual_eta, receiver_power[1907],year_sun_angles,LCOH,no_helios
 #%% single moment simulation for contraint 
 
 def square_to_circle(flux_map,num_elements):
@@ -684,9 +684,9 @@ def single_moment_simulation():
 obj_func = []
 
 def objective(x):
-    eff, noon_power, yearly_sun_angles, LCOH, no_helios,angle,side = field_layout_sim(x)
+    eff, noon_power, yearly_sun_angles, LCOH, no_helios = field_layout_sim(x)
     print('*****************************************************************')
-    print('Guesses:',angle,side,' Efficiency:', eff, ' LCOH_{comb}: ', LCOH, '# Helios: ', no_helios)
+    print('Guesses:',x,' Efficiency:', eff, ' LCOH_{comb}: ', LCOH, '# Helios: ', no_helios)
     print('*****************************************************************')
     
     obj_func.append(LCOH)
@@ -711,7 +711,7 @@ con3 = {'type': 'ineq','fun': constraint3}
 
 con = [con3]
 # field size
-number_zones = 15
+number_zones = 20
 
 # define bounds
 bound = (0,90/90)
@@ -720,13 +720,13 @@ for i in range(number_zones):
     bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
     
 # initial guess for design variables
-x0 = np.zeros(number_zones*2)
-for i in range(number_zones):
-    x0[i] = random.random()
-for i in np.arange(number_zones,2*number_zones):
-    x0[i] = random.uniform(0.46,1)
+# x0 = np.zeros(number_zones*2)
+# for i in range(number_zones):
+#     x0[i] = random.random()
+# for i in np.arange(number_zones,2*number_zones):
+#     x0[i] = random.uniform(0.46,1)
 
-# x0 = [1,1,1,1,1,1,1,1,1,1,0.46,0.46,0.46,0.46,0.46] #,,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
+x0 = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46] #,,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
 time_before = time.time()
 result = minimize(objective,x0,method='SLSQP',bounds=bnds,tol=1e-3,options={'maxiter':150,'disp': True,'eps':0.1}) # 'eps':0.5'rhobeg':30/160
 time_after = time.time()

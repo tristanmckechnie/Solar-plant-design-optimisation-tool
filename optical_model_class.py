@@ -144,9 +144,9 @@ class optical_model:
         # call square to solar correction function
         flux_map_circle = self.square_to_circle(flux_map) # !!! Remember to choose correct number of elements !!!
         
-        moment_power = sum(sum(flux_map_circle))
+        # moment_power = sum(sum(flux_map_circle))
         
-        # moment_power = sum(sum(flux_map))
+        moment_power = sum(sum(flux_map))
         
         print('Moment power: ',moment_power,' W')
         
@@ -309,7 +309,7 @@ class optical_model:
         XX, YY = np.meshgrid(X, Y)
         xx,yy = np.meshgrid(x,y)
         
-        Z = interp_function(XX,YY) # this function is used to interp onto the surface given azimtuh and altitude angles.
+        # Z = interp_function(XX,YY) # this function is used to interp onto the surface given azimtuh and altitude angles.
         
         # fig = plt.figure()
         # ax = fig.add_subplot(111, projection='3d')

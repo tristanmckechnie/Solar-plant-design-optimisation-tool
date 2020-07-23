@@ -16,7 +16,9 @@ from scipy.optimize import minimize
 from matti_field import matti_dense
 #%% field layout simulation tool
 
-def plant_configuration_sim(x):
+def plant_configuration_sim(x,sunflower_heliostat_field,sunflower_tower_height,sunflower_tilt_angle):
+    
+    tower_height = sunflower_tower_height
 
     Radius = x[0]
     tes_hours = x[1] 
@@ -25,9 +27,10 @@ def plant_configuration_sim(x):
     # =============================================================================
     # Field layout generation 
     # =============================================================================
-    
+    # heliostat_field = sunflower_heliostat_field
+    # np.savetxt('../data/my_plant_config/positions.csv',heliostat_field,delimiter=",")
     heliostat_field, pod_field = matti_dense(Radius*80,1)
-    time.sleep(5)
+    # time.sleep(5)
     # =============================================================================    
     # run optical simulation 
     # =============================================================================    
@@ -35,7 +38,7 @@ def plant_configuration_sim(x):
     
     time_before = time.time()
     # initialize
-    test_simulation = opt.optical_model(-27.24,22.902,'north',2,1.83,1.22,[50],21,45,20,4,num_helios,"../code/build/sunflower_tools/Sunflower","../data/my_plant_config") # initiaze object of type optical_model
+    test_simulation = opt.optical_model(-27.24,22.902,'north',2,1.83,1.22,[50],tower_height,sunflower_tilt_angle,20,4,num_helios,"../code/build/sunflower_tools/Sunflower","../data/my_plant_config") # initiaze object of type optical_model
     
     # set jsons
     test_simulation.heliostat_inputs() # set heliostat parameters
@@ -55,8 +58,8 @@ def plant_configuration_sim(x):
     
     for i in range(len(receiver_power)):
         receiver_power[i] = receiver_power[i] * 0.9 
-        if receiver_power[i] > 2500000:
-            receiver_power[i] = 2500000
+        if receiver_power[i] > 2500000/0.9:
+            receiver_power[i] = 2500000/0.9
     
     annual_eta = sum(dni*efficencies*num_helios*1.83*1.22)/sum(num_helios*1.83*1.22*dni)
     
@@ -113,7 +116,7 @@ def plant_configuration_sim(x):
     
     #% CAPEX values
     
-    CAPEX_tower = 8288 + 1.73*(40**2.75);
+    CAPEX_tower = 8288 + 1.73*(tower_height**2.75);
     CAPEX_vert_transport = 140892;
     CAPEX_horz_transport = 248634;
     
@@ -159,51 +162,186 @@ def plant_configuration_sim(x):
     print('Solar heat generated, ', annual_heat_gen/1e6)
     print('########################################################################')
     
-    return annual_eta, receiver_power[1907],year_sun_angles,LCOH,no_helios
+    return annual_eta, receiver_power[1907],year_sun_angles,LCOH,no_helios,test_simulation.resource
 
 
 
 
 #%% field layout optimization
 
-obj_func = []
+# obj_func = []
 
-def objective(x):
-    eff, noon_power, yearly_sun_angles, LCOH_obj, no_helios = plant_configuration_sim(x)
-    print('*****************************************************************')
-    print('Guesses:',x,' Efficiency:', eff, ' LCOH_{comb}: ', LCOH_obj, '# Helios: ', no_helios)
-    print('*****************************************************************')
-    obj_func.append(LCOH_obj)
-    return LCOH_obj/60 
+# def objective(x):
+#     eff, noon_power, yearly_sun_angles, LCOH_obj, no_helios = plant_configuration_sim(x)
+#     print('*****************************************************************')
+#     print('Guesses:',x,' Efficiency:', eff, ' LCOH_{comb}: ', LCOH_obj, '# Helios: ', no_helios)
+#     print('*****************************************************************')
+#     obj_func.append(LCOH_obj)
+#     return LCOH_obj/60 
 
-# def constraint1(x):
-#     field = field_layout(x)
-#     moment_power = single_moment_simulation()
-#     return (moment_power/1e6) - (2500000/1e6)
+# # def constraint1(x):
+# #     field = field_layout(x)
+# #     moment_power = single_moment_simulation()
+# #     return (moment_power/1e6) - (2500000/1e6)
 
-# def constraint2(x):
-#     return x-80/160 
+# # def constraint2(x):
+# #     return x-80/160 
 
-# def constraint3(x):
-#     return 160/160 - x
-
-
-# con1 = {'type': 'eq','fun': constraint1}
-# con2 = {'type': 'ineq','fun': constraint2}
-# con3 = {'type': 'ineq','fun': constraint3}
-
-# con = [con3]
+# # def constraint3(x):
+# #     return 160/160 - x
 
 
-bnds = np.array([[0,1],[0,1],[0,1]])
-x0 = [52/80,14/20,0.85/2] #,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
-time_before = time.time()
-result = minimize(objective,x0,method='SLSQP',tol=1e-5,bounds=bnds,options={'maxiter':80,'disp': True,}) # 'rhobeg':30/160
-time_after = time.time()
-print(result)
-print('Optimization runtime: ', time_after - time_before)
+# # con1 = {'type': 'eq','fun': constraint1}
+# # con2 = {'type': 'ineq','fun': constraint2}
+# # con3 = {'type': 'ineq','fun': constraint3}
 
-#%% loop matti dense function
+# # con = [con3]
 
-for i in np.arange(20,100,10):
-    matti_dense(i,1)
+
+# bnds = np.array([[0,1],[0,1],[0,1]])
+# x0 = [52/80,14/20,0.85/2] #,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
+# time_before = time.time()
+# result = minimize(objective,x0,method='SLSQP',tol=1e-5,bounds=bnds,options={'maxiter':80,'disp': True,}) # 'rhobeg':30/160
+# time_after = time.time()
+# print(result)
+# print('Optimization runtime: ', time_after - time_before)
+
+#%% sunflower parametric studies recreation
+
+# tower height studies 
+tower_height_fields = np.genfromtxt('/home/tristan/Documents/Sunflower_parametric_studies/receiver_height_parametric/tower_height_param_fields.csv',delimiter=',')
+
+# determine number of heliostats in each field
+field_length = []
+for k in [1,3,5,7,9,11]:
+    for i in range(1,1464):
+        if np.isnan(tower_height_fields[i,k]) == True:
+            field_length.append(i-1)
+            break
+        elif i == 1463:
+            field_length.append(1463)
+
+# iterate over fields and determine annual optical efficiency
+tower_heights = [15,30,45,60,75,90]
+annual_eff_tower_heights = []
+for i in range(6):
+    tower_field = np.zeros((field_length[i]-1,4),dtype=float)
+    tower_field[:,0:2] = tower_height_fields[1:field_length[i],i*2:(i*2 +2)]
+    
+    plt.figure()
+    plt.plot(tower_field[:,0],tower_field[:,1],'o')
+    
+    eff, noon_power, yearly_sun_angles, LCOH_obj, no_helios,resource = plant_configuration_sim([0.1,0.5,0.5],tower_field,tower_heights[i],45)
+    
+    annual_eff_tower_heights.append(eff)
+    
+# receiver tilt  studies 
+receiver_tilt_fields = np.genfromtxt('/home/tristan/Documents/Sunflower_parametric_studies/receiver_tilt_parametric/tilt_param_fields.csv',delimiter=',')
+
+# determine number of heliostats in each field
+field_length = []
+for k in [1,3,5,7,9,11]:
+    for i in range(1,1301):
+        if np.isnan(receiver_tilt_fields[i,k]) == True:
+            field_length.append(i-1)
+            break
+        elif i == 1300:
+            field_length.append(1300)
+
+# iterate over fields and determine annual optical efficiency
+annual_eff_tilts = []
+tilt=[90,75,60,45,30,15]
+for i in range(6):
+    tilt_field = np.zeros((field_length[i]-1,4),dtype=float)
+    tilt_field[:,0:2] = receiver_tilt_fields[1:field_length[i],i*2:(i*2 +2)]
+    
+    plt.figure()
+    plt.plot(tilt_field[:,0],tilt_field[:,1],'o')
+    
+    eff, noon_power, yearly_sun_angles, LCOH_obj, no_helios,resource = plant_configuration_sim([0.1,0.5,0.5],tilt_field,40,tilt[i])
+    
+    annual_eff_tilts.append(eff)
+
+# receiver dsitance studies 
+receiver_dist_fields = np.genfromtxt('/home/tristan/Documents/Sunflower_parametric_studies/receiver_in_field_parametric/tower_dist_param_fields.csv',delimiter=',')
+
+# determine number of heliostats in each field
+field_length = []
+for k in [1,3,5,7,9,11,13]:
+    for i in range(1,1300):
+        if np.isnan(receiver_dist_fields[i,k]) == True:
+            field_length.append(i-1)
+            break
+        elif i == 1299:
+            field_length.append(1299)
+
+# iterate over fields and determine annual optical efficiency
+annual_eff_dist = []
+for i in range(7):
+    dist_field = np.zeros((field_length[i]-1,4),dtype=float)
+    dist_field[:,0:2] = receiver_dist_fields[1:field_length[i],i*2:(i*2 +2)]
+    
+    plt.figure()
+    plt.plot(dist_field[:,0],dist_field[:,1],'o')
+    
+    eff, noon_power, yearly_sun_angles, LCOH_obj, no_helios,resource = plant_configuration_sim([0.1,0.5,0.5],dist_field,40,45)
+    
+    annual_eff_dist.append(eff)  
+    
+#%% plot efficiency figures
+
+# code to allo spines
+def make_patch_spines_invisible(ax):
+    ax.set_frame_on(True)
+    ax.patch.set_visible(False)
+    for sp in ax.spines.values():
+        sp.set_visible(True)
+
+
+# mutliple x axes plot 
+
+fig,ax = plt.subplots(figsize=(10,7))
+
+par1 = ax.twiny()
+par2 = ax.twiny()
+
+#offset axis
+par2.xaxis.set_ticks_position("bottom")
+par2.xaxis.set_label_position("bottom")
+par2.spines["bottom"].set_position(("axes",-0.125))
+
+make_patch_spines_invisible(par2) # make spine visible
+
+
+# plot graphs
+p1, = ax.plot(tower_heights,annual_eff_tower_heights,'-o',color='navy',label='Tower height',linewidth=3,ms=10)
+p2, = par1.plot(tilt,annual_eff_tilts,'-s',color='darkorange',label='Tilt angle',linewidth=3,ms=10)
+p3, = par2.plot([0,5,10,15,20,25],annual_eff_dist,'-x',color='lime',label='Tower distance',linewidth=3,ms=10)
+
+# set axes limits
+ax.set_ylim([0.6,0.8])
+ax.set_xlim([15,90])
+par1.set_xlim([15,90])
+par2.set_xlim([-5,25])
+
+ax.set_xticks([15,30,45,60,75,90])
+par1.set_xticks([15,30,45,60,75,90])
+par2.set_xticks([0,5,10,15,20,25])
+# par2.set_xticklabels([0,5,10,15,20,25])
+
+# axes labels
+ax.set_ylabel('Optical efficiency',fontsize = 15)
+ax.set_xlabel('Tower height [m]',fontsize = 15)
+par1.set_xlabel('Receiver tilt angle [$^\mathrm{o}}$]',fontsize = 15)
+par2.set_xlabel('Tower distance from field [m]',fontsize = 15)
+
+# ticks size
+ax.tick_params(labelsize=15)
+par1.tick_params(labelsize=15)
+par2.tick_params(labelsize=15)
+#legend
+lines = [p1,p2,p3]
+ax.legend(lines, [l.get_label() for l in lines],fontsize = 15)
+plt.show()
+
+    
