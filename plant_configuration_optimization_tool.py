@@ -58,8 +58,8 @@ def plant_configuration_sim(x,sunflower_heliostat_field,sunflower_tower_height,s
     
     for i in range(len(receiver_power)):
         receiver_power[i] = receiver_power[i] * 0.9 
-        if receiver_power[i] > 2500000/0.9:
-            receiver_power[i] = 2500000/0.9
+        if receiver_power[i] > 2500000: #/0.9
+            receiver_power[i] = 2500000 #/0.9
     
     annual_eta = sum(dni*efficencies*num_helios*1.83*1.22)/sum(num_helios*1.83*1.22*dni)
     

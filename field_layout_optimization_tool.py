@@ -238,7 +238,7 @@ class dense_zone:
 #%% cornfield layout simulation tool
 
 def field_layout(x):
-    num_zones = 20
+    num_zones = 15
     widths = np.zeros((num_zones,1))
     for i in range(num_zones):
         widths[i] = x[i]*160
@@ -254,7 +254,7 @@ def field_layout(x):
     initial_x_start = 0
     x_start = initial_x_start
     for i in range(num_zones):
-        zone = dense_zone(side[i], 2, widths[i],8,0,0,x_start) # initialize class instance
+        zone = dense_zone(side[i], 2, widths[i],5,0,0,x_start) # initialize class instance
         zone.zone_pattern()   
         d_col_rows.append(zone.r)      
         if i < num_zones-1:
@@ -398,7 +398,7 @@ def pods_on_radius(radius,side_lengths, allowed_angle): # angle must be in degre
 
 def radial_layout(x):
    
-    num_zones = 20 # number of radial zones
+    num_zones = 15 # number of radial zones
     
     # assign zone angles
     count = 0
@@ -1155,4 +1155,249 @@ plt.legend()
 
 plt.show()
 
+#%% loop different sized field generation
 
+field_sizes = np.arange(2700000,3800000,200000)
+
+for k in range(5):
+    print(k)
+    if field_sizes[k] < 3700000:
+        
+        upper = field_sizes[k+1]
+        lower = field_sizes[k]
+        obj_func = []
+        
+        def objective(x):
+            eff, noon_power, yearly_sun_angles, LCOH, no_helios = field_layout_sim(x)
+            print('*****************************************************************')
+            print('Guesses:',x,' Efficiency:', eff, ' LCOH_{comb}: ', LCOH, '# Helios: ', no_helios)
+            print('*****************************************************************')
+            
+            obj_func.append(LCOH)
+            
+            return LCOH/60 
+        
+        def objective_2(x):
+            eff, noon_power, yearly_sun_angles, LCOH, no_helios = field_layout_sim(x)    
+            return LCOH, eff, noon_power, no_helios
+          
+        def constraint1(x):
+            field = field_layout(x)
+            moment_power = single_moment_simulation()
+            print('Contraint 1: ',(moment_power/1e6) - (lower/1e6))
+            return (moment_power/1e6) - (lower/1e6)
+        def constraint4(x):
+            field = field_layout(x)
+            moment_power = single_moment_simulation()
+            print('Contraint 2: ',(upper/1e6) - (moment_power/1e6))
+            return  (upper/1e6) - (moment_power/1e6)
+        
+        
+        con1 = {'type': 'ineq','fun': constraint1}
+        con4 = {'type': 'ineq','fun': constraint4}
+        
+        con = [con1,con4]
+        # field size
+        number_zones = 15
+        
+        # define bounds
+        bound = (0,90/90)
+        bnds = np.full((number_zones,2),bound)
+        for i in range(number_zones):
+            bnds = np.append(bnds,[[4.6/10,10/10]],axis=0)
+            
+        
+        x0 = [0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46] #,,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46 divided through by 160 ie max bounds ,0.76022055, 0.82678298, 0.83880648, 0.85134496, 0.99735851
+        time_before = time.time()
+        result = minimize(objective,x0,method='SLSQP',bounds=bnds,tol=1e-3,constraints=con,options={'maxiter':150,'disp': True,'eps':0.1}) # 'eps':0.5'rhobeg':30/160
+        time_after = time.time()
+        print(result)
+        print('Optimization runtime: ', time_after - time_before)
+    
+        # save intermediate results to text file
+        LCOH, eff, noon_power, no_helios = objective_2(result.x)
+        noon_power = single_moment_simulation()
+        name = str(lower) + '_MW_field_size_' + str(number_zones) + '_zones'
+        with open(name,'w') as file:
+            file.write('Field size:'+str(lower)+' to '+str(upper)+' '+str(number_zones)+'_zones'+ '\n')
+            file.write('Optimizer result: \n')
+            file.write(str(result) + '\n')     
+            file.write('Field performance: \n')
+            file.write('Noon power: ' + str(noon_power)+'\n')
+            file.write('# heliostats:' + str(no_helios)+'\n')
+            file.write('Annual optical efficiency: ' + str(eff)) 
+#%% TES and output to process parametric study
+def parametric_study_field_evaluation(x):
+    tower_height = 40 
+    # =============================================================================
+    # Field layout generation 
+    # =============================================================================
+    
+    heliostat_field = field_layout(x)
+    # heliostat_field,angle,side = radial_layout(x)
+    
+    # =============================================================================    
+    # run optical simulation 
+    # =============================================================================    
+    num_helios = len(heliostat_field)
+    
+    time_before = time.time()
+    # initialize
+    test_simulation = opt.optical_model(-27.24,22.902,'north',2,1.83,1.22,[50],tower_height,45,20,4,num_helios,"../code/build/sunflower_tools/Sunflower","../data/my_field_tests") # initiaze object of type optical_model
+    
+    # set jsons
+    test_simulation.heliostat_inputs() # set heliostat parameters
+    test_simulation.receiver_inputs()
+    test_simulation.tower_inputs()
+    test_simulation.raytracer_inputs()
+    # get optical efficiency results
+    efficencies, year_sun_angles = test_simulation.annual_hourly_optical_eff()
+    time_after =  time.time()
+    print('Total simulation time for a single configuration: ',time_after-time_before)
+    
+    # import dni csv
+    dni = np.genfromtxt('Kalagadi_Manganese-hour.csv',delimiter=',')
+    receiver_power = dni*efficencies*num_helios*1.83*1.22
+    
+    # limit receiver power to 2.5 MWth and apply efficiency
+    
+    for i in range(len(receiver_power)):
+        receiver_power[i] = receiver_power[i] * 0.9 
+        if receiver_power[i] > 2500000:
+            receiver_power[i] = 2500000
+    
+    annual_eta = sum(dni*efficencies*num_helios*1.83*1.22)/sum(num_helios*1.83*1.22*dni)
+    
+    # =============================================================================    
+    # dispatch optimization section
+    # =============================================================================  
+    
+    eta = efficencies
+    receiver_data = receiver_power
+    return receiver_data,num_helios
+    
+def parametric_study(receiver_data,num_helios,y,z):
+    
+    # Single plant configuration dispatch optimization and economics
+    tower_height = 40
+    
+    start = 0
+    days = 360
+    # receiver_data = np.genfromtxt('kalagadi_field_output_new_efficiency.csv',delimiter=',') # note this is the new receiver efficiency applied in the excel sheet. 
+    tariff_data = np.genfromtxt('kalagadi_extended_tariff.csv',delimiter=',')#tariff_data = np.load('./data/megaflex_tariff.npy') #
+    time_horizon = 48
+    process_output = y*1e6
+    TES_hours = z
+    E_start = 0
+    no_helios = num_helios
+    penality_val = 0
+    
+    # create object instance and time simulation
+    bloob_slsqp = disp.Dispatch(start,days,receiver_data,tariff_data,time_horizon,process_output, TES_hours, E_start, no_helios,penality_val)
+    
+    # run rolling time-horizon optimization object method
+    start_clock = time.process_time()
+    # bloob_mmfd.rolling_optimization('dot','zeros',0) # run mmfd with random starting guesses
+    bloob_slsqp.rolling_optimization('scipy','zeros',0) # run slsqp with mmfd starting guesses
+    end_clock = time.process_time()
+    
+    # run plotting
+    # optimal_cost_temp, heuristic_cost_temp,Cummulative_TES_discharge,Cummulative_Receiver_thermal_energy,Cummulative_dumped_heat = bloob_slsqp.plotting()
+    
+    # costs
+    cum_optical_cost, cum_heuristic_cost, optimal_cost_temp, heuristic_cost_temp = bloob_slsqp.strategy_costs()
+    end_clock = time.process_time()
+    
+    print('########################################################################')
+    print('Rolling time-horizon')
+    print('Computational expense: ', end_clock - start_clock)
+    print('Heuristic cost: ', heuristic_cost_temp)
+    print('Optimal cost: ',optimal_cost_temp)
+    print('########################################################################')
+    
+    annual_heat_gen = sum(bloob_slsqp.discharge*bloob_slsqp.thermal_normalization)
+    
+    # =============================================================================
+    #     LCOH calculation
+    # =============================================================================
+    
+    n = 25;
+    
+    #% CAPEX values
+    
+    CAPEX_tower = 8288 + 1.73*(tower_height**2.75);
+    CAPEX_vert_transport = 140892;
+    CAPEX_horz_transport = 248634;
+    
+    CAPEX_TES = 20443*TES_hours*process_output/1e6; #% where TES is represented in MWh_t's
+    
+    CAPEX_receiver = 138130;
+    
+    CAPEX_heliostat = 112.5*1.83*1.22*no_helios #% where Asf is the aperature area of the solar field
+    
+    CAPEX_HE = 138130*process_output/1e6#% where HE is the kWt of the heat exchanger.
+    
+    Total_CAPEX = CAPEX_tower + CAPEX_vert_transport + CAPEX_horz_transport + CAPEX_TES + CAPEX_receiver + CAPEX_heliostat + CAPEX_HE;
+    
+    #% OPEX
+    
+    OM = 0.039*Total_CAPEX;
+    indirect_costs = 0.22*Total_CAPEX;
+    
+    #% capitcal recovery factor
+    kd = 0.07;
+    k_ins = 0.01;
+    CRF = ((kd*(1+kd)**n)/((1+kd)**n -1)) + k_ins;
+    
+    #% LCOH 
+    
+    LCOH_s = ((Total_CAPEX+ indirect_costs)*CRF + OM )/(annual_heat_gen/1e6);
+    
+    # LCOH electric
+    
+    annual_elec_gen = days*24*process_output/1e6 - annual_heat_gen/1e6
+    
+    LCOH_e = (optimal_cost_temp/14.5)/annual_elec_gen # optimal_cost_temp !!!! Remember that costs for optimal cost etc is in Rands so must convert to dollar!!!!
+    
+    # LCOH combined
+    
+    LCOH = ((LCOH_e*annual_elec_gen) + (LCOH_s*annual_heat_gen/1e6) )/ (days*24*process_output/1e6)
+    
+    print('########################################################################')
+    print('Solar LCOH: ', LCOH_s)
+    print('Electric LCOH, ', LCOH_e)
+    print('Combined LCOH, ', LCOH)
+    print('Electric heat generated, ', annual_elec_gen)
+    print('Solar heat generated, ', annual_heat_gen/1e6)
+    print('########################################################################')
+    
+    return LCOH,annual_heat_gen/1e6,annual_elec_gen
+
+TESs = [8,10,12,14,16,18,20]
+output = [0.5,0.65,0.8,0.95,1.1,1.25,1.4]
+
+# field to be tested
+field = [1,1,1,1,1,1,1,1,1,1,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46]
+
+# simulate field performance
+receiver_data, num_helios = parametric_study_field_evaluation(field)
+
+# array to store results
+parametric_result_lcoh = np.zeros((7,7))
+parametric_resut_solar_heat = np.zeros((7,7))
+parametric_result_elec_heat = np.zeros((7,7))
+
+# nested loop over TESs and output, all using same receiver data for the same field
+
+count = 0
+for i in TESs:
+    count1 = 0
+    for k in output:
+        lcoh_temp,solar_heat_temp,elec_heat_temp = parametric_study(receiver_data,num_helios,k,i)
+        parametric_result_lcoh[count, count1] = lcoh_temp
+        parametric_resut_solar_heat[count, count1] = solar_heat_temp
+        parametric_result_elec_heat[count, count1] = elec_heat_temp
+        count1 += 1
+    count += 1
+        
+        
