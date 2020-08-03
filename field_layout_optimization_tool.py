@@ -238,7 +238,7 @@ class dense_zone:
 #%% cornfield layout simulation tool
 
 def field_layout(x):
-    num_zones = 15
+    num_zones = 10
     widths = np.zeros((num_zones,1))
     for i in range(num_zones):
         widths[i] = x[i]*160
@@ -501,7 +501,18 @@ def field_layout_sim(x):
     # limit receiver power to 2.5 MWth and apply efficiency
     
     for i in range(len(receiver_power)):
-        receiver_power[i] = receiver_power[i] * 0.9 
+        # receiver_power[i] = receiver_power[i] * 0.9 
+        if receiver_power[i] < 0.3*1e6:
+            receiver_power[i] = 0
+        elif receiver_power[i] >= 0.3*1e6 and receiver_power[i] < 0.5*1e6:
+            receiver_power[i] = receiver_power[i]*0.6
+        elif receiver_power[i] >= 0.5*1e6 and receiver_power[i] < 0.7*1e6:
+            receiver_power[i] = receiver_power[i]*0.78
+        elif receiver_power[i] >= 0.7*1e6 and receiver_power[i] < 0.8*1e6:
+            receiver_power[i] = receiver_power[i]*0.85
+        elif receiver_power[i] >= 0.8*1e6 :
+            receiver_power[i] = receiver_power[i]*0.9
+            
         if receiver_power[i] > 2500000:
             receiver_power[i] = 2500000
     
@@ -521,7 +532,7 @@ def field_layout_sim(x):
     # receiver_data = np.genfromtxt('kalagadi_field_output_new_efficiency.csv',delimiter=',') # note this is the new receiver efficiency applied in the excel sheet. 
     tariff_data = np.genfromtxt('kalagadi_extended_tariff.csv',delimiter=',')#tariff_data = np.load('./data/megaflex_tariff.npy') #
     time_horizon = 48
-    process_output = 0.85e6
+    process_output = 0.95e6
     TES_hours = 14
     E_start = 0
     no_helios = num_helios
@@ -1157,7 +1168,7 @@ plt.show()
 
 #%% loop different sized field generation
 
-field_sizes = np.arange(2700000,3800000,200000)
+field_sizes = np.arange(3300000,3800000,200000)
 
 for k in range(5):
     print(k)
