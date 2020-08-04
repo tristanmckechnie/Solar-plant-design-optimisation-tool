@@ -482,7 +482,7 @@ def field_layout_sim(x):
     
     time_before = time.time()
     # initialize
-    test_simulation = opt.optical_model(-27.24,22.902,'north',2,1.83,1.22,[50],tower_height,45,20,4,num_helios,"../code/build/sunflower_tools/Sunflower","../data/my_field_tests") # initiaze object of type optical_model
+    test_simulation = opt.optical_model(-27.24,22.902,'north',2,1.83,1.22,[50],tower_height,45,20,5,num_helios,"../code/build/sunflower_tools/Sunflower","../data/my_field_tests") # initiaze object of type optical_model
     
     # set jsons
     test_simulation.heliostat_inputs() # set heliostat parameters
@@ -1254,7 +1254,7 @@ def parametric_study_field_evaluation(x):
     
     time_before = time.time()
     # initialize
-    test_simulation = opt.optical_model(-27.24,22.902,'north',2,1.83,1.22,[50],tower_height,45,20,4,num_helios,"../code/build/sunflower_tools/Sunflower","../data/my_field_tests") # initiaze object of type optical_model
+    test_simulation = opt.optical_model(-27.24,22.902,'north',2,1.83,1.22,[50],tower_height,45,20,5,num_helios,"../code/build/sunflower_tools/Sunflower","../data/my_field_tests") # initiaze object of type optical_model
     
     # set jsons
     test_simulation.heliostat_inputs() # set heliostat parameters
@@ -1273,7 +1273,18 @@ def parametric_study_field_evaluation(x):
     # limit receiver power to 2.5 MWth and apply efficiency
     
     for i in range(len(receiver_power)):
-        receiver_power[i] = receiver_power[i] * 0.9 
+        # receiver_power[i] = receiver_power[i] * 0.9 
+        if receiver_power[i] < 0.3*1e6:
+            receiver_power[i] = 0
+        elif receiver_power[i] >= 0.3*1e6 and receiver_power[i] < 0.5*1e6:
+            receiver_power[i] = receiver_power[i]*0.6
+        elif receiver_power[i] >= 0.5*1e6 and receiver_power[i] < 0.7*1e6:
+            receiver_power[i] = receiver_power[i]*0.78
+        elif receiver_power[i] >= 0.7*1e6 and receiver_power[i] < 0.8*1e6:
+            receiver_power[i] = receiver_power[i]*0.85
+        elif receiver_power[i] >= 0.8*1e6 :
+            receiver_power[i] = receiver_power[i]*0.9
+            
         if receiver_power[i] > 2500000:
             receiver_power[i] = 2500000
     
@@ -1384,19 +1395,22 @@ def parametric_study(receiver_data,num_helios,y,z):
     
     return LCOH,annual_heat_gen/1e6,annual_elec_gen
 
-TESs = [8,10,12,14,16,18,20]
-output = [0.5,0.65,0.8,0.95,1.1,1.25,1.4]
+TESs = [8,10,12,13,14,15,16,18,20]
+output = [0.5,0.65,0.8,0.85,0.9,0.95,1,1.05,1.1,1.25,1.4]
 
 # field to be tested
-field = [1,1,1,1,1,1,1,1,1,1,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46,0.46]
+field = [0.73025913, 0.74222951, 0.74200676, 0.74611982, 0.7432961 ,
+       0.74670632, 0.75656534, 0.74907234, 0.75120288, 0.74925327,
+       0.47695792, 0.46      , 0.46      , 0.46      , 0.46      ,
+       0.46      , 0.4643496 , 0.50073854, 0.54000282, 0.58059354]
 
 # simulate field performance
 receiver_data, num_helios = parametric_study_field_evaluation(field)
 
 # array to store results
-parametric_result_lcoh = np.zeros((7,7))
-parametric_resut_solar_heat = np.zeros((7,7))
-parametric_result_elec_heat = np.zeros((7,7))
+parametric_result_lcoh = np.zeros((len(output),len(TESs)))
+parametric_resut_solar_heat = np.zeros((len(output),len(TESs)))
+parametric_result_elec_heat = np.zeros((len(output),len(TESs)))
 
 # nested loop over TESs and output, all using same receiver data for the same field
 
@@ -1411,4 +1425,185 @@ for i in TESs:
         count1 += 1
     count += 1
         
-        
+#%% focal length parametric study
+
+
+def field_layout_sim_focal(x,focal):
+    tower_height = 40 
+    # =============================================================================
+    # Field layout generation 
+    # =============================================================================
+    
+    heliostat_field = field_layout(x)
+    # heliostat_field,angle,side = radial_layout(x)
+    
+    # =============================================================================    
+    # run optical simulation 
+    # =============================================================================    
+    num_helios = len(heliostat_field)
+    
+    time_before = time.time()
+    # initialize
+    test_simulation = opt.optical_model(-27.24,22.902,'north',2,1.83,1.22,focal,tower_height,45,20,5,num_helios,"../code/build/sunflower_tools/Sunflower","../data/my_field_tests_focal_lengths") # initiaze object of type optical_model
+    
+    # set jsons
+    test_simulation.heliostat_inputs() # set heliostat parameters
+    test_simulation.receiver_inputs()
+    test_simulation.tower_inputs()
+    test_simulation.raytracer_inputs()
+    # get optical efficiency results
+    efficencies, year_sun_angles = test_simulation.annual_hourly_optical_eff()
+    time_after =  time.time()
+    print('Total simulation time for a single configuration: ',time_after-time_before)
+    
+    # import dni csv
+    dni = np.genfromtxt('Kalagadi_Manganese-hour.csv',delimiter=',')
+    receiver_power = dni*efficencies*num_helios*1.83*1.22
+    
+    # limit receiver power to 2.5 MWth and apply efficiency
+    
+    for i in range(len(receiver_power)):
+        # receiver_power[i] = receiver_power[i] * 0.9 
+        if receiver_power[i] < 0.3*1e6:
+            receiver_power[i] = 0
+        elif receiver_power[i] >= 0.3*1e6 and receiver_power[i] < 0.5*1e6:
+            receiver_power[i] = receiver_power[i]*0.6
+        elif receiver_power[i] >= 0.5*1e6 and receiver_power[i] < 0.7*1e6:
+            receiver_power[i] = receiver_power[i]*0.78
+        elif receiver_power[i] >= 0.7*1e6 and receiver_power[i] < 0.8*1e6:
+            receiver_power[i] = receiver_power[i]*0.85
+        elif receiver_power[i] >= 0.8*1e6 :
+            receiver_power[i] = receiver_power[i]*0.9
+            
+        if receiver_power[i] > 2500000:
+            receiver_power[i] = 2500000
+    
+    annual_eta = sum(dni*efficencies*num_helios*1.83*1.22)/sum(num_helios*1.83*1.22*dni)
+    
+    # =============================================================================    
+    # dispatch optimization section
+    # =============================================================================  
+    
+    eta = efficencies
+    receiver_data = receiver_power
+    
+    # Single plant configuration dispatch optimization and economics
+    
+    start = 0
+    days = 360
+    # receiver_data = np.genfromtxt('kalagadi_field_output_new_efficiency.csv',delimiter=',') # note this is the new receiver efficiency applied in the excel sheet. 
+    tariff_data = np.genfromtxt('kalagadi_extended_tariff.csv',delimiter=',')#tariff_data = np.load('./data/megaflex_tariff.npy') #
+    time_horizon = 48
+    process_output = 0.95e6
+    TES_hours = 14
+    E_start = 0
+    no_helios = num_helios
+    penality_val = 0
+    
+    # create object instance and time simulation
+    bloob_slsqp = disp.Dispatch(start,days,receiver_data,tariff_data,time_horizon,process_output, TES_hours, E_start, no_helios,penality_val)
+    
+    # run rolling time-horizon optimization object method
+    start_clock = time.process_time()
+    # bloob_mmfd.rolling_optimization('dot','zeros',0) # run mmfd with random starting guesses
+    bloob_slsqp.rolling_optimization('scipy','zeros',0) # run slsqp with mmfd starting guesses
+    end_clock = time.process_time()
+    
+    # run plotting
+    # optimal_cost_temp, heuristic_cost_temp,Cummulative_TES_discharge,Cummulative_Receiver_thermal_energy,Cummulative_dumped_heat = bloob_slsqp.plotting()
+    
+    # costs
+    cum_optical_cost, cum_heuristic_cost, optimal_cost_temp, heuristic_cost_temp = bloob_slsqp.strategy_costs()
+    end_clock = time.process_time()
+    
+    print('########################################################################')
+    print('Rolling time-horizon')
+    print('Computational expense: ', end_clock - start_clock)
+    print('Heuristic cost: ', heuristic_cost_temp)
+    print('Optimal cost: ',optimal_cost_temp)
+    print('########################################################################')
+    
+    annual_heat_gen = sum(bloob_slsqp.discharge*bloob_slsqp.thermal_normalization)
+    
+    # =============================================================================
+    #     LCOH calculation
+    # =============================================================================
+    
+    n = 25;
+    
+    #% CAPEX values
+    
+    CAPEX_tower = 8288 + 1.73*(tower_height**2.75);
+    CAPEX_vert_transport = 140892;
+    CAPEX_horz_transport = 248634;
+    
+    CAPEX_TES = 20443*TES_hours*process_output/1e6; #% where TES is represented in MWh_t's
+    
+    CAPEX_receiver = 138130;
+    
+    CAPEX_heliostat = 112.5*1.83*1.22*no_helios #% where Asf is the aperature area of the solar field
+    
+    CAPEX_HE = 138130*process_output/1e6#% where HE is the kWt of the heat exchanger.
+    
+    Total_CAPEX = CAPEX_tower + CAPEX_vert_transport + CAPEX_horz_transport + CAPEX_TES + CAPEX_receiver + CAPEX_heliostat + CAPEX_HE;
+    
+    #% OPEX
+    
+    OM = 0.039*Total_CAPEX;
+    indirect_costs = 0.22*Total_CAPEX;
+    
+    #% capitcal recovery factor
+    kd = 0.07;
+    k_ins = 0.01;
+    CRF = ((kd*(1+kd)**n)/((1+kd)**n -1)) + k_ins;
+    
+    #% LCOH 
+    
+    LCOH_s = ((Total_CAPEX+ indirect_costs)*CRF + OM )/(annual_heat_gen/1e6);
+    
+    # LCOH electric
+    
+    annual_elec_gen = days*24*process_output/1e6 - annual_heat_gen/1e6
+    
+    LCOH_e = (optimal_cost_temp/14.5)/annual_elec_gen # optimal_cost_temp !!!! Remember that costs for optimal cost etc is in Rands so must convert to dollar!!!!
+    
+    # LCOH combined
+    
+    LCOH = ((LCOH_e*annual_elec_gen) + (LCOH_s*annual_heat_gen/1e6) )/ (days*24*process_output/1e6)
+    
+    print('########################################################################')
+    print('Solar LCOH: ', LCOH_s)
+    print('Electric LCOH, ', LCOH_e)
+    print('Combined LCOH, ', LCOH)
+    print('Electric heat generated, ', annual_elec_gen)
+    print('Solar heat generated, ', annual_heat_gen/1e6)
+    print('########################################################################')
+    
+    return LCOH
+
+field_layout_parametric = [ [66.91646174135961], [57.39692325412551, 84.98530510339212], [51.04240264721475, 72.00067893231228, 92.18071319143567], [47.94615811239504, 64.78975479356512, 80.958627406545, 96.01973680303927], [46.04223648591922, 59.711234897243244, 72.57184875127872, 86.25564817629332, 98.72998752825951], [44.803535978663426, 56.1548072783887, 67.40624829827756, 78.4587659362089, 89.50943115530028, 100.26134135074531], [44.05203898401704, 53.81562747670747, 63.46432456557402, 72.77313069045653, 82.63305607493609, 91.83102416366881, 101.31862794758794], [43.33682739261531, 51.91657170270027, 60.4830323000281, 68.87532126716388, 77.23302073455018, 85.78811753690871, 93.61443722782474, 101.98672998001358], [42.853211404722245, 50.43997705890319, 57.96041414852708, 65.58028795973229, 72.96295493937848, 80.57003552613239, 88.03902155736313, 95.16521609657525, 102.85153340969592], [42.47926730252058, 49.306983579077425, 56.16207976730357, 63.01219736075349, 69.68480485536301, 76.37865884412332, 83.18341971871199, 89.98621130335641, 96.68542903963426, 103.3001770910688]]
+lcoh = []
+for i in field_layout_parametric:
+    temp = field_layout_sim_focal([0.73025913, 0.74222951, 0.74200676, 0.74611982, 0.7432961 ,
+       0.74670632, 0.75656534, 0.74907234, 0.75120288, 0.74925327,
+       0.47695792, 0.46      , 0.46      , 0.46      , 0.46      ,
+       0.46      , 0.4643496 , 0.50073854, 0.54000282, 0.58059354],i)
+    print('***************************************')
+    print('***************************************')
+    print('LCOH: ', temp , ' Focals: ', i)
+    print('***************************************')
+    print('***************************************')
+    lcoh.append(temp)
+    
+#%%
+fig,ax = plt.subplots()
+ax.plot([1,2,3,4,5,6,7,8,9,10],lcoh,'o-',label='Heliostats with set number of focal lengths')
+ax.plot([1,10],[38.4,38.4],label = 'Heliostats at slant')
+ax.set_xlabel('Number of focal lengths',fontsize=18)
+ax.set_ylabel('$\mathrm{LCOH_{comb}}$',fontsize=18)
+plt.legend()
+ax.set_ylim([38,39.5])
+ax.set_yticks([38,38.5,39,39.5])
+ax.tick_params(labelsize=15)
+plt.show()
+plt.savefig('focal_length_parametric')
